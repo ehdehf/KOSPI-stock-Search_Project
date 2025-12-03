@@ -102,7 +102,38 @@
 	        SYSDATE,
 	        #{resetToken},
 	        TO_DATE(#{tokenExpireAt}, 'YYYY-MM-DD HH24:MI:SS'),
-	        'ACTIVE'
+	        'WAITING_VERIFY'
 	    )
 	</insert>
+
+	<!-- 토큰으로 해당 계정을 조회 -->
+	<select id="findByToken" resultMap="userMap">
+	    SELECT
+	        EMAIL,
+	        FIRST_NAME,
+	        LAST_NAME,
+	        FULL_NAME,
+	        PASSWORD,
+	        PROVIDER,
+	        ROLE,
+	        TO_CHAR(CREATED_AT, 'YYYY-MM-DD HH24:MI:SS') AS CREATED_AT,
+	        LOGIN_FAIL_COUNT,
+	        TO_CHAR(LOCK_UNTIL, 'YYYY-MM-DD HH24:MI:SS') AS LOCK_UNTIL,
+	        RESET_TOKEN,
+	        TO_CHAR(TOKEN_EXPIRE_AT, 'YYYY-MM-DD HH24:MI:SS') AS TOKEN_EXPIRE_AT,
+	        ACCOUNT_STATUS,
+	        TO_CHAR(SUSPEND_UNTIL, 'YYYY-MM-DD HH24:MI:SS') AS SUSPEND_UNTIL
+	    FROM USER_INFO
+	    WHERE RESET_TOKEN = #{token}
+	</select>
+	
+	<!-- 이메일 인증 확인 -->
+	<update id="activateUser">
+	    UPDATE USER_INFO
+	    SET
+	        ACCOUNT_STATUS = 'ACTIVE',
+	        RESET_TOKEN = NULL,
+	        TOKEN_EXPIRE_AT = NULL
+	    WHERE EMAIL = #{email}
+	</update>
 </mapper>
