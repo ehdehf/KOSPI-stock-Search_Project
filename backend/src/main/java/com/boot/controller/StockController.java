@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/stocks")
-@RequestMapping("/api")    
+//@RequestMapping("/api")    
 @RequiredArgsConstructor
 /*
  * 검색 + 상세
@@ -27,9 +27,7 @@ public class StockController {
 
     private final StockInfoService stockInfoService;
     private final StockNewsService stockNewsService;
-    
-    @Autowired
-    private StockService service;
+    private final StockService stockService;
 
     // 자동완성 + 검색
     @GetMapping("/search")
@@ -49,21 +47,21 @@ public class StockController {
 
         return dto;
     }
-    @PostMapping("/stocks")
+    @PostMapping
     public String insertStockInfo(@RequestBody StockInfoDTO dto) {
 
         System.out.println("==== [CHECK] 들어온 STOCK_NAME ====");
         System.out.println(dto.getStockName());
         System.out.println("=================================");
 
-        service.insertStockInfo(dto);
+        stockService.insertStockInfo(dto);
         return "OK";
     }
 
 
     @PostMapping("/news")
     public String insertStockNews(@RequestBody StockNewsDTO dto) {
-        service.insertStockNews(dto);
+    	stockService.insertStockNews(dto);
         return "OK";
     }
 }
