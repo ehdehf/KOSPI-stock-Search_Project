@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.boot.dao.StockMapper">
+
+    <!-- STOCK_INFO INSERT -->
+    <insert id="insertStockInfo" parameterType="com.boot.dto.StockInfoDTO">
+        INSERT INTO STOCK_INFO (
+            STOCK_CODE,
+            STOCK_NAME,
+            MARKET_TYPE,
+            INDUSTRY,
+            PRICE,
+            PRICE_CHANGE,
+            CHANGE_RATE,
+            MARKET_CAP,
+            UPDATED_AT
+        ) VALUES (
+            #{stockCode,   jdbcType=VARCHAR},
+            #{stockName,   jdbcType=VARCHAR},
+            #{marketType,  jdbcType=VARCHAR},
+            #{industry,    jdbcType=VARCHAR},
+            #{price,       jdbcType=INTEGER},
+            #{priceChange, jdbcType=INTEGER},
+            #{changeRate,  jdbcType=DOUBLE},
+            #{marketCap,   jdbcType=VARCHAR},
+            SYSDATE
+        )
+    </insert>
+
+    <!-- STOCK_NEWS INSERT -->
+    <insert id="insertStockNews" parameterType="com.boot.dto.StockNewsDTO">
+        INSERT INTO STOCK_NEWS (
+            NEWS_ID,
+            STOCK_CODE,
+            TITLE,
+            CONTENT,
+            URL,
+            NEWS_DATE,
+            CREATED_AT,
+            SENTIMENT,
+            SCORE,
+            KEYWORDS,
+            UPDATED_AT
+        ) VALUES (
+            STOCK_NEWS_SEQ.NEXTVAL,
+            #{stockCode,  jdbcType=VARCHAR},
+            #{title,      jdbcType=VARCHAR},
+            #{content,    jdbcType=CLOB},
+            #{url,        jdbcType=VARCHAR},
+            #{newsDate,   jdbcType=TIMESTAMP},
+            SYSDATE,
+            #{sentiment,  jdbcType=VARCHAR},
+            #{score,      jdbcType=INTEGER},
+            #{keywords,   jdbcType=VARCHAR},
+            SYSDATE
+        )
+    </insert>
+
+</mapper>
