@@ -1,5 +1,6 @@
 package com.boot.service;
 
+import java.util.List;
 import com.boot.dto.StockInfoDTO;
 import com.boot.dto.StockNewsDTO;
 
