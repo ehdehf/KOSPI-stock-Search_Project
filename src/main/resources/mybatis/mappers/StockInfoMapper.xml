@@ -4,7 +4,8 @@
 <mapper namespace="com.boot.dao.StockInfoDAO">
 	<!-- 종목 자동완성 검색 -->
     <select id="searchStocks" parameterType="string" resultType="com.boot.dto.StockInfoDTO">
-        SELECT *
+        SELECT STOCK_CODE, STOCK_NAME, MARKET_TYPE, INDUSTRY, PRICE,
+      		   PRICE_CHANGE, CHANGE_RATE, MARKET_CAP, UPDATED_AT
         FROM STOCK_INFO
         WHERE STOCK_NAME LIKE '%' || #{keyword} || '%'
         ORDER BY STOCK_NAME
@@ -12,7 +13,8 @@
 
     <!-- 상세 정보 -->
     <select id="getStockDetail" parameterType="string" resultType="com.boot.dto.StockInfoDTO">
-        SELECT *
+        SELECT STOCK_CODE, STOCK_NAME, MARKET_TYPE, INDUSTRY, PRICE,
+       		   PRICE_CHANGE, CHANGE_RATE, MARKET_CAP, UPDATED_AT
         FROM STOCK_INFO
         WHERE STOCK_CODE = #{stockCode}
     </select>
