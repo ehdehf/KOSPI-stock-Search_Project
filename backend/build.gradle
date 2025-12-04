@@ -41,6 +41,12 @@ dependencies {
 	implementation 'javax.xml.bind:jaxb-api:2.3.1'
 	implementation 'org.glassfish.jaxb:jaxb-runtime:2.3.1'
 	
+	implementation 'org.springframework.boot:spring-boot-starter-cache'
+
+    // Redis Integration
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	
+	
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	runtimeOnly 'com.oracle.database.jdbc:ojdbc11'
