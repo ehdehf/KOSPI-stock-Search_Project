@@ -78,7 +78,7 @@ public class StockController {
         return ResponseEntity.ok(ranking);
     }
     
-    // 🌟 급등/급락 종목 조회 API (신규)
+    // 🌟 급등/급락 종목 조회 API
     @GetMapping("/top-movers")
     public Map<String, List<StockInfoDTO>> getTopMovers() {
         
