@@ -1,0 +1,8 @@
+뉴스 (크롤링,스케줄링) 실행 방법
+
+
+1.파워쉘을 켠 후  pip install requests beautifulsoup4 oracledb 실행
+
+2. vs코드로 받은 파일  news_crawler.py 실행한 후 실행이 다 되면 news_sentiment_main.py 이걸로 실행
+
+3.  setup_news_scheduler.bat 이 파일을 관리자 권한으로 실행하면 스캐줄링이 됨
