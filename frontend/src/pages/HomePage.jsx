@@ -424,7 +424,7 @@ function HomePage() {
             <NewsSection>
                 <NewsHeader>
                     <h2>📰 오늘의 주요 이슈 및 뉴스</h2>
-                    <Link to="/news" style={{ color: '#3f51b5', textDecoration: 'none', fontWeight: '600' }}>
+                    <Link to="/trend" style={{ color: '#3f51b5', textDecoration: 'none', fontWeight: '600' }}>
                         더보기 &gt;
                     </Link>
                 </NewsHeader>
