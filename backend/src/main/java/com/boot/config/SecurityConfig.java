@@ -32,6 +32,7 @@ public class SecurityConfig {
                 .antMatchers("/api/stocks/**").permitAll()  // 공개 API
                 .antMatchers("/api/news/**").permitAll()    // 공개 API
                 .antMatchers("/admin/**").hasRole("ADMIN")  // 추가
+                .antMatchers("/api/chart/**").permitAll()
                 .anyRequest().authenticated()                   // 나머지는 인증 필요
             .and()
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)

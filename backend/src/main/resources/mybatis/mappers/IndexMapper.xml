@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.boot.dao.IndexDAO"> 
+    
+    <insert id="insertOrUpdateIndexData" parameterType="com.boot.dto.IndexDataDTO">
+        MERGE INTO STOCK_INDEX_DATA target
+        USING DUAL ON (target.IDX_NM = #{idxNm} AND target.BASE_DT = #{basDt})
+        
+        WHEN MATCHED THEN
+            UPDATE SET
+                CL_PR = #{clpr, jdbcType=NUMERIC},  VS = #{vs, jdbcType=NUMERIC},        FLT_RT = #{fltRt, jdbcType=NUMERIC},  MK_P = #{mkp, jdbcType=NUMERIC},
+                HI_PR = #{hipr, jdbcType=NUMERIC},
+                LO_PR = #{lopr, jdbcType=NUMERIC},
+                TR_QU = #{trqu, jdbcType=NUMERIC},
+                TR_PRC = #{trPrc, jdbcType=NUMERIC},
+                TOT_AMT = #{lstgMrktTotAmt, jdbcType=NUMERIC},
+                UPDATED_AT = SYSDATE
+                
+        WHEN NOT MATCHED THEN
+            INSERT (IDX_NM, BASE_DT, CL_PR, VS, FLT_RT, MK_P, HI_PR, LO_PR, TR_QU, TR_PRC, TOT_AMT)
+            VALUES (
+                #{idxNm}, 
+                #{basDt}, 
+                #{clpr, jdbcType=NUMERIC},
+                #{vs, jdbcType=NUMERIC},
+                #{fltRt, jdbcType=NUMERIC},
+                #{mkp, jdbcType=NUMERIC},
+                #{hipr, jdbcType=NUMERIC},
+                #{lopr, jdbcType=NUMERIC},
+                #{trqu, jdbcType=NUMERIC},
+                #{trPrc, jdbcType=NUMERIC},
+                #{lstgMrktTotAmt, jdbcType=NUMERIC}
+            )
+    </insert>
+    
+    <select id="selectKospiHistory" resultType="com.boot.dto.IndexDataDTO">
+        SELECT 
+            IDX_NM AS idxNm,
+            BASE_DT AS basDt,
+            CL_PR AS clpr,
+            VS AS vs,
+            FLT_RT AS fltRt
+        FROM 
+            STOCK_INDEX_DATA
+        WHERE
+            IDX_NM = '코스피'
+        ORDER BY 
+            BASE_DT ASC
+    </select>
+    
+    <select id="countIndexData" parameterType="string" resultType="int">
+        SELECT COUNT(*) FROM STOCK_INDEX_DATA WHERE IDX_NM = #{idxNm}
+    </select>
+    
+    <insert id="insertOrUpdateKosdaqIndexData" parameterType="com.boot.dto.IndexDataDTO">
+        MERGE INTO STOCK_INDEX_DATA_KOSDAQ target
+        USING DUAL ON (target.IDX_NM = #{idxNm} AND target.BASE_DT = #{basDt})
+        WHEN MATCHED THEN
+            UPDATE SET
+                CL_PR = #{clpr, jdbcType=NUMERIC},
+                VS = #{vs, jdbcType=NUMERIC},
+                FLT_RT = #{fltRt, jdbcType=NUMERIC},
+                MK_P = #{mkp, jdbcType=NUMERIC},
+                HI_PR = #{hipr, jdbcType=NUMERIC},
+                LO_PR = #{lopr, jdbcType=NUMERIC},
+                TR_QU = #{trqu, jdbcType=NUMERIC},
+                TR_PRC = #{trPrc, jdbcType=NUMERIC},
+                TOT_AMT = #{lstgMrktTotAmt, jdbcType=NUMERIC},
+                UPDATED_AT = SYSDATE
+        WHEN NOT MATCHED THEN
+            INSERT (IDX_NM, BASE_DT, CL_PR, VS, FLT_RT, MK_P, HI_PR, LO_PR, TR_QU, TR_PRC, TOT_AMT)
+            VALUES (
+                #{idxNm},
+                #{basDt},
+                #{clpr, jdbcType=NUMERIC},
+                #{vs, jdbcType=NUMERIC},
+                #{fltRt, jdbcType=NUMERIC},
+                #{mkp, jdbcType=NUMERIC},
+                #{hipr, jdbcType=NUMERIC},
+                #{lopr, jdbcType=NUMERIC},
+                #{trqu, jdbcType=NUMERIC},
+                #{trPrc, jdbcType=NUMERIC},
+                #{lstgMrktTotAmt, jdbcType=NUMERIC}
+            )
+    </insert>
+
+    <!-- KOSDAQ 전체 시계열 조회 -->
+    <select id="selectKosdaqHistory" resultType="com.boot.dto.IndexDataDTO">
+        SELECT 
+            IDX_NM AS idxNm,
+            BASE_DT AS basDt,
+            CL_PR AS clpr,
+            VS AS vs,
+            FLT_RT AS fltRt
+        FROM 
+            STOCK_INDEX_DATA_KOSDAQ
+        WHERE
+            IDX_NM = '코스닥'
+        ORDER BY 
+            BASE_DT ASC
+    </select>
+
+    <!-- KOSDAQ 저장 개수 확인 -->
+    <select id="countKosdaqIndexData" parameterType="string" resultType="int">
+        SELECT COUNT(*) FROM STOCK_INDEX_DATA_KOSDAQ WHERE IDX_NM = #{idxNm}
+    </select>
+
+</mapper>

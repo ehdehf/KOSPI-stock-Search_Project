@@ -4,6 +4,11 @@ import styled, { keyframes, css } from 'styled-components';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 
+// 🌟 차트 컴포넌트 import (KospiLineChart를 사용하기 위해 필요)
+import KosdaqLineChart from '../components/shared/KosdaqLineChart';
+import KospiLineChart from '../components/shared/KospiLineChart';
+
+
 // 🔴 경로: 상위 폴더(src)로 가서 components/shared로 접근
 // 실제 컴포넌트는 나중에 구현한다고 가정하고 빈 박스로 대체합니다.
 // import KospiIndexCard from '../components/shared/KospiIndexCard'; 
@@ -121,8 +126,11 @@ const KeywordTab = styled.button`
   color: ${props => (props.active ? '#3f51b5' : '#6b7280')};
   border-bottom: ${props => (props.active ? '3px solid #3f51b5' : '3px solid transparent')};
   transition: all 0.2s;
-  &:hover {
+  /* 🌟 비표준 prop 경고를 무시하고 DOM에 전달하지 않음 */
+  &[active="true"] { 
+    font-weight: bold;
     color: #3f51b5;
+    border-bottom: 3px solid #3f51b5;
   }
 `;
 
@@ -179,7 +187,9 @@ const StockPill = styled.span`
   transition: transform 0.1s;
   
   ${props => {
-    const isPositive = props.rate && parseFloat(props.rate.replace(/%|\+/g, '')) > 0;
+    // 🌟 boolean prop 경고를 피하기 위해 string "true" 또는 "false"로 사용
+    const rateString = props.rate ? props.rate.toString().replace(/%|\+/g, '') : '0';
+    const isPositive = parseFloat(rateString) > 0;
     const color = isPositive ? '#10b981' : '#ef4444'; 
     const bgColor = isPositive ? '#ecfdf5' : '#fef2f2'; 
     const borderColor = isPositive ? '#34d399' : '#f87171'; 
@@ -218,6 +228,7 @@ const formatRate = (rate) => {
 
 // --- HomePage Function ---
 function HomePage() {
+    
     const [activeKeyword, setActiveKeyword] = useState('Today_Hot');
 
     // 🌟 1. API 데이터를 저장할 상태
@@ -232,7 +243,7 @@ function HomePage() {
         const fetchTopMovers = async () => {
             try {
                 setLoading(true);
-                // 🚨 스프링 부트 API 호출 경로
+                // 🚨 스프링 부트 API 호출 경로 (급등/급락 종목)
                 const response = await axios.get('http://localhost:8484/api/stocks/top-movers');
                 
                 // 받아온 데이터 (Map 형태)를 상태에 저장
@@ -243,8 +254,6 @@ function HomePage() {
 
             } catch (error) {
                 console.error("Top Movers 데이터 로드 실패:", error);
-                // 실패 시 임시 데이터를 대신 사용할 수 있습니다.
-                // setStockData({ rising: [...], falling: [...] });
                 setStockData({ rising: [], falling: [] });
             } finally {
                 setLoading(false);
@@ -255,7 +264,7 @@ function HomePage() {
     }, []);
 
 
-    // --- 임시 데이터 (API 실패 시 마퀴만 사용하거나, 초기 로딩 시 사용) ---
+    // --- 임시 데이터 (뉴스 및 마퀴) ---
     const newsData = {
         Today_Hot: [
             { title: '핵심 뉴스 1', summary: '주요 이슈에 대한 간략한 요약입니다.' },
@@ -328,21 +337,43 @@ function HomePage() {
                 <KospiIndexCard>
                     <h3>🇰🇷 KOSPI 지수</h3>
                     <p>3,000.50 <span style={{ color: 'red' }}>(+0.50%)</span></p>
-                    <div style={{ marginTop: '15px' }}>
-
-[Image of a stock market index line chart]
-</div>
-                    <p style={{ fontSize: '0.8rem', marginTop: '10px', color: '#888' }}>**그래프 영역** (KospiIndexCard 컴포넌트 내부)</p>
+                    
+                    {/* ⭐ Kospi Line Chart 컴포넌트 삽입 */}
+                    <div style={{ 
+                        width: '100%', 
+                        marginTop: '15px', 
+                        // 🌟 그림자 스타일 추가: 차트 영역을 구분
+                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)', 
+                        borderRadius: '6px',
+                        padding: '10px',
+                        backgroundColor: '#f9f9f9' // 차트 배경을 약간 다르게 설정
+                    }}>
+                        <KospiLineChart />
+                    </div>
+                    
+                    <p style={{ fontSize: '0.8rem', marginTop: '10px', color: '#888' }}>
+                        **그래프 영역** (KospiIndexCard 컴포넌트 내부)
+                    </p>
                 </KospiIndexCard>
 
-                {/* Kosdaq 지수 (그래프 포함 영역) */}
+                {/* Kosdaq 지수 (그래프 포함 영역) - Kospi와 동일 스타일 적용 */}
                 <KospiIndexCard>
                     <h3>🌐 KOSDAQ 지수</h3>
                     <p>950.75 <span style={{ color: 'blue' }}>(-0.25%)</span></p>
-                    <div style={{ marginTop: '15px' }}>
+                    
+                    {/* ⭐ Kosdaq Line Chart 컴포넌트 삽입 */}
+                    <div style={{ 
+                        width: '100%', 
+                        marginTop: '15px', 
+                        // 🌟 그림자 스타일 추가: Kospi와 동일하게 적용
+                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)', 
+                        borderRadius: '6px',
+                        padding: '10px',
+                        backgroundColor: '#f9f9f9'
+                    }}>
+                        <KosdaqLineChart />
+                    </div>
 
-[Image of a stock market index line chart]
-</div>
                     <p style={{ fontSize: '0.8rem', marginTop: '10px', color: '#888' }}>**그래프 영역** (KosdaqIndexCard 컴포넌트 내부)</p>
                 </KospiIndexCard>
 
@@ -403,7 +434,8 @@ function HomePage() {
                     {Object.keys(newsData).map((keyword) => (
                         <KeywordTab
                             key={keyword}
-                            active={activeKeyword === keyword}
+                            // 🌟 boolean prop 경고를 피하기 위해 문자열로 변환
+                            active={(activeKeyword === keyword).toString()} 
                             onClick={() => setActiveKeyword(keyword)}
                         >
                             {keyword.replace('_', ' ')}
