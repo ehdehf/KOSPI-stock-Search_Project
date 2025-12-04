@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -81,6 +81,15 @@ const CheckButton = styled.button`
   &:hover { background-color: #5a6268; }
 `;
 
+// ⭐ 메시지 스타일 (성공: 초록, 실패: 빨강)
+const Message = styled.span`
+  font-size: 12px;
+  margin-top: 5px;
+  display: block;
+  color: ${props => props.isValid ? '#28a745' : '#dc3545'};
+  font-weight: bold;
+`;
+
 function Signup() {
   const navigate = useNavigate();
   
@@ -92,41 +101,58 @@ function Signup() {
   });
 
   const [isEmailChecked, setIsEmailChecked] = useState(false);
+  
+  // 메시지 상태 관리
+  const [emailMessage, setEmailMessage] = useState('');
+  const [isEmailValid, setIsEmailValid] = useState(false);
+
+  // 이미 로그인한 상태라면 접근 막기
+  useEffect(() => {
+    if (localStorage.getItem('token')) {
+      alert("이미 로그인이 되어있습니다.");
+      navigate('/');
+    }
+  }, [navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
 
-    // 이메일을 수정하면 중복 확인을 다시 해야 함
     if (name === 'email') {
       setIsEmailChecked(false);
+      setEmailMessage(''); // 수정 시 메시지 초기화
     }
   };
 
-  // 🔎 이메일 중복 확인
+  // 🔎 이메일 중복 확인 (Alert 제거 -> 메시지 표시)
   const handleCheckEmail = async () => {
     if (!formData.email) {
-      alert("이메일을 입력해주세요.");
+      setEmailMessage("이메일을 입력해주세요.");
+      setIsEmailValid(false);
       return;
     }
     
     try {
-      // 파라미터 방식 전송 (?email=...)
       const response = await axios.post('/auth/check-email', null, {
         params: { email: formData.email }
       });
 
       if (response.data === true) {
-        // alert("✅ 사용 가능한 이메일입니다.");
+        // ✅ 사용 가능
+        setEmailMessage("✅ 사용 가능한 이메일입니다.");
+        setIsEmailValid(true);
         setIsEmailChecked(true); 
       } else {
-        // alert("❌ 이미 사용 중인 이메일입니다.");
+        // ❌ 사용 불가
+        setEmailMessage("❌ 이미 사용 중인 이메일입니다.");
+        setIsEmailValid(false);
         setIsEmailChecked(false);
       }
 
     } catch (error) {
       console.error("중복 체크 에러:", error);
-      alert("오류가 발생했습니다. 다시 시도해주세요.");
+      setEmailMessage("❌ 오류가 발생했습니다. 다시 시도해주세요.");
+      setIsEmailValid(false);
       setIsEmailChecked(false);
     }
   };
@@ -145,7 +171,6 @@ function Signup() {
       return;
     }
 
-    // 이름 쪼개기 (홍길동 -> 성:홍, 이름:길동)
     const name = formData.name.trim();
     const lastName = name.substring(0, 1);
     const firstName = name.substring(1);
@@ -159,10 +184,8 @@ function Signup() {
         provider: 'LOCAL'
       });
       
-      // ⭐ [수정됨] 성공 시 알림 후 메인 페이지로 이동
       alert('회원가입이 완료되었습니다!\n가입하신 이메일로 인증 링크가 발송되었습니다.\n메일함에서 인증을 완료한 후 로그인해주세요.');
-      
-      navigate('/'); // 메인으로 이동
+      navigate('/'); 
 
     } catch (error) {
       console.error('가입 에러:', error);
@@ -188,7 +211,13 @@ function Signup() {
               />
               <CheckButton type="button" onClick={handleCheckEmail}>중복 확인</CheckButton>
             </EmailRow>
-            {isEmailChecked && <span style={{color: 'green', fontSize: '12px', marginTop: '5px', display: 'block'}}>✅ 사용 가능합니다.</span>}
+            
+            {/* 메시지가 있을 때만 표시 */}
+            {emailMessage && (
+              <Message isValid={isEmailValid}>
+                {emailMessage}
+              </Message>
+            )}
           </InputGroup>
 
           <InputGroup>

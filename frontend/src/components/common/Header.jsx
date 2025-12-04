@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios'; // ⭐ axios 임포트 필수!
 
-// 경로 확인 필수
+// 경로 확인 (auth 폴더인지 common 폴더인지)
 import LoginModal from '../auth/LoginModal'; 
 
 const StyledHeader = styled.header`
@@ -32,9 +33,7 @@ const NavMenu = styled.nav`
     font-weight: 500;
     text-decoration: none;
     transition: color 0.2s;
-    &:hover { 
-      color: var(--primary-blue); 
-    }
+    &:hover { color: var(--primary-blue); }
   }
 `;
 
@@ -94,10 +93,8 @@ function Header() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [keyword, setKeyword] = useState('');
   
-  // 로그인한 유저 정보를 담을 그릇
   const [user, setUser] = useState(null);
 
-  // 화면이 켜질 때 저장소(localStorage) 검사
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
@@ -105,15 +102,39 @@ function Header() {
     }
   }, []);
 
-  // 로그아웃 기능
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    // 토큰 2개 모두 삭제
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    setUser(null);
-    alert('로그아웃 되었습니다.');
-    navigate('/');
+  // ⭐ [수정됨] 백엔드 API 호출을 포함한 로그아웃
+  const handleLogout = async () => {
+    if (!user || !user.email) {
+        // 유저 정보가 없으면 그냥 로컬만 지우고 끝냄
+        localStorage.clear();
+        setUser(null);
+        navigate('/');
+        return;
+    }
+
+    try {
+        // 1. 백엔드에 로그아웃 요청 (Refresh Token 삭제용)
+        // 명세서: POST /auth/logout, param: email
+        // (이메일 중복확인 때처럼 params로 보냄)
+        await axios.post('/auth/logout', null, {
+            params: { email: user.email }
+        });
+        
+        console.log("서버 로그아웃 성공");
+
+    } catch (error) {
+        console.error("서버 로그아웃 실패 (그래도 클라이언트는 로그아웃 처리함):", error);
+    } finally {
+        // 2. 성공하든 실패하든 브라우저의 정보는 싹 지워야 함
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        
+        setUser(null);
+        alert('로그아웃되었습니다.'); // 명세서 메시지와 일치시킴
+        navigate('/');
+    }
   };
 
   const openModal = () => setIsModalOpen(true);
@@ -121,7 +142,6 @@ function Header() {
 
   const handleSearch = () => {
     if (keyword.trim()) {
-      // 리액트 검색 페이지로 이동
       navigate(`/search?keyword=${keyword.trim()}`);
     } else {
       alert("검색어를 입력해주세요.");
@@ -156,7 +176,6 @@ function Header() {
             <SearchBtn onClick={handleSearch}>🔍</SearchBtn>
           </SearchContainer>
 
-          {/* 로그인 여부에 따라 버튼 변경 */}
           {user ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <span style={{ fontSize: '14px', fontWeight: 'bold' }}>
