@@ -79,6 +79,7 @@ public class StockController {
     }
     
     // 🌟 급등/급락 종목 조회 API
+    //테스트용 주석
     @GetMapping("/top-movers")
     public Map<String, List<StockInfoDTO>> getTopMovers() {
         
