@@ -173,4 +173,23 @@
 	    SET REFRESH_TOKEN = NULL
 	    WHERE EMAIL = #{email}
 	</update>
+	
+	<!-- 소셜 계정 신규 등록 -->
+	<insert id="insertSocialUser">
+	    INSERT INTO USER_INFO (
+	        EMAIL,
+	        FULL_NAME,
+	        PROVIDER,
+	        ROLE,
+	        CREATED_AT,
+	        ACCOUNT_STATUS
+	    ) VALUES (
+	        #{email},
+	        #{fullName},
+	        #{provider},
+	        'USER',
+	        SYSDATE,
+	        'ACTIVE'
+	    )
+	</insert>
 </mapper>

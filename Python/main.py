@@ -1,8 +1,15 @@
-# main.py - 전체 뉴스 분석
+# main.py - 전체 뉴스 분석 (강제 재분석 옵션 추가, 최대 200개 처리)
+import sys
 from db_connector import DBConnector
 from sentiment_analyzer import SentimentAnalyzer
 
 def main():
+    # 명령줄 인자 확인 (--force 옵션으로 강제 재분석)
+    force_reanalyze = "--force" in sys.argv or "-f" in sys.argv
+    
+    # 최대 처리 개수 설정
+    MAX_NEWS = 200
+    
     # ============================================
     # DB 연결 정보 (opendata_user)
     # ============================================
@@ -22,15 +29,25 @@ def main():
     print()
     
     try:
-        # 분석할 뉴스 조회 (전체)
+        # 분석할 뉴스 조회
         print("=" * 60)
-        print("분석할 뉴스 조회 중... (전체)")
+        if force_reanalyze:
+            print(f"⚠ 강제 재분석 모드: 모든 뉴스를 다시 분석합니다. (최대 {MAX_NEWS}개)")
+            print("분석할 뉴스 조회 중... (전체 뉴스)")
+            news_list = db.get_all_news(limit=MAX_NEWS)  # 최대 200개만 조회
+        else:
+            print(f"분석할 뉴스 조회 중... (분석 안 된 뉴스만, 최대 {MAX_NEWS}개)")
+            news_list = db.get_unanalyzed_news(limit=MAX_NEWS)  # 최대 200개만 조회
         print("=" * 60)
-        news_list = db.get_unanalyzed_news(limit=None)  # 전체 조회
         print(f"총 {len(news_list)}개의 뉴스를 분석합니다.\n")
         
         if len(news_list) == 0:
-            print("분석할 뉴스가 없습니다.")
+            if force_reanalyze:
+                print("분석할 뉴스가 없습니다. (DB에 뉴스가 없습니다)")
+            else:
+                print("분석할 뉴스가 없습니다.")
+                print("💡 모든 뉴스가 이미 분석되었습니다.")
+                print("   강제로 다시 분석하려면: python main.py --force")
             return
         
         # 각 뉴스 분석
@@ -80,5 +97,4 @@ def main():
         db.close()
 
 if __name__ == "__main__":
-
     main()

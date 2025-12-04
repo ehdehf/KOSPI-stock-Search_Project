@@ -6,6 +6,7 @@ import com.boot.dto.LoginResponseDTO;
 import com.boot.dto.LoginUserInfoDTO;
 import com.boot.dto.PasswordResetConfirmDTO;
 import com.boot.dto.RegisterRequestDTO;
+import com.boot.dto.SocialUserInfoDTO;
 import com.boot.dto.UserInfoDTO;
 import com.boot.security.JwtProvider;
 
@@ -303,5 +304,46 @@ public class AuthService {
         userDAO.deleteRefreshToken(email);
 
         return ResponseEntity.ok("로그아웃되었습니다.");
+    }
+    
+    //소셜로그인
+    public ResponseEntity<?> socialLogin(SocialUserInfoDTO social) {
+
+        // 1) 기존 회원 조회
+        UserInfoDTO user = userDAO.findByEmail(social.getEmail());
+
+        if (user == null) {
+            // 2) 신규 소셜 회원 등록
+            String fullName = social.getFullName();
+            userDAO.insertSocialUser(
+                    social.getEmail(),
+                    fullName,
+                    social.getProvider()
+            );
+
+            // 다시 조회
+            user = userDAO.findByEmail(social.getEmail());
+        }
+
+        // 3) 토큰 생성
+        String accessToken = jwtProvider.createAccessToken(user.getEmail());
+        String refreshToken = jwtProvider.createRefreshToken(user.getEmail());
+
+        // 4) Refresh Token DB 저장
+        userDAO.updateRefreshToken(user.getEmail(), refreshToken);
+
+        // 5) 프론트로 내려줄 사용자 정보 구성
+        LoginUserInfoDTO userInfo = new LoginUserInfoDTO(
+                user.getEmail(),
+                user.getFullName(),
+                user.getRole(),
+                user.getProvider(),
+                user.getCreatedAt(),
+                user.getAccountStatus()
+        );
+
+        LoginResponseDTO response = new LoginResponseDTO(accessToken, refreshToken, userInfo);
+
+        return ResponseEntity.ok(response);
     }
 }

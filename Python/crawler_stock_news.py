@@ -1,4 +1,4 @@
-# crawler_stock_news.py - 약 600개 뉴스 수집
+# crawler_stock_news.py - 실제 DB 증가 200개 보장 (빈 페이지 체크 없음)
 import requests
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
@@ -233,10 +233,10 @@ def parse_news_list(conn, sid1=101, page=1, date_str=None):
         return []
 
 # ===============================
-# Oracle DB에 뉴스 INSERT (MERGE 사용)
+# Oracle DB에 뉴스 INSERT (실제 INSERT 여부 반환)
 # ===============================
 def insert_news(conn, news_item):
-    """신규 뉴스를 Oracle DB에 INSERT"""
+    """신규 뉴스를 Oracle DB에 INSERT (실제 INSERT 여부 반환)"""
     cursor = None
     try:
         content = news_item['content']
@@ -248,7 +248,7 @@ def insert_news(conn, news_item):
         if not content:
             content = news_item['title']
         if not news_item['url']:
-            return False
+            return False, False  # (성공 여부, 실제 INSERT 여부)
         
         title_val = (news_item['title'][:490] if news_item['title'] else "제목 없음")
         url_val = news_item['url'][:990] if news_item['url'] else ""
@@ -262,27 +262,24 @@ def insert_news(conn, news_item):
                 stock_code_val = None
             check_cursor.close()
         
+        # 먼저 중복 체크
+        check_cursor = conn.cursor()
+        check_cursor.execute("SELECT COUNT(*) FROM STOCK_NEWS WHERE URL = :url", {'url': url_val})
+        is_duplicate = check_cursor.fetchone()[0] > 0
+        check_cursor.close()
+        
+        if is_duplicate:
+            return True, False  # 중복이므로 스킵 (성공이지만 INSERT 안 됨)
+        
         cursor = conn.cursor()
         conn.autocommit = False
         
         sql = """
-            MERGE INTO STOCK_NEWS n
-            USING (
-                SELECT 
-                    :stock_code as STOCK_CODE,
-                    :title as TITLE,
-                    :content as CONTENT,
-                    :url as URL,
-                    :news_date as NEWS_DATE
-                FROM DUAL
-            ) s
-            ON (n.URL = s.URL)
-            WHEN NOT MATCHED THEN
-                INSERT (
-                    STOCK_CODE, TITLE, CONTENT, URL, NEWS_DATE, CREATED_AT
-                ) VALUES (
-                    s.STOCK_CODE, s.TITLE, s.CONTENT, s.URL, s.NEWS_DATE, SYSDATE
-                )
+            INSERT INTO STOCK_NEWS (
+                STOCK_CODE, TITLE, CONTENT, URL, NEWS_DATE, CREATED_AT
+            ) VALUES (
+                :stock_code, :title, :content, :url, :news_date, SYSDATE
+            )
         """
         
         cursor.execute(sql, {
@@ -301,16 +298,17 @@ def insert_news(conn, news_item):
         
         cursor.close()
         
-        return verify_result is not None
+        is_inserted = verify_result is not None
+        return True, is_inserted
             
-    except:
+    except Exception as e:
         if cursor:
             try:
                 conn.rollback()
                 cursor.close()
             except:
                 pass
-        return False
+        return False, False
 
 # ===============================
 # DB 저장 확인 함수
@@ -327,7 +325,7 @@ def verify_db_count(conn):
         return 0
 
 # ===============================
-# 메인 함수 (약 600개 목표)
+# 메인 함수 (실제 DB 증가 200개 보장)
 # ===============================
 def main():
     conn = None
@@ -351,18 +349,20 @@ def main():
         print(f"시작 전 DB 뉴스 개수: {before_count}개\n")
         
         print("=" * 60)
-        print("뉴스 크롤링 시작 (목표: 약 600개)")
+        print("뉴스 크롤링 시작 (목표: 실제 DB 증가 200개)")
         print("=" * 60)
-        print("※ 최근 7일치, 각 카테고리 40페이지까지 크롤링\n")
+        print("※ 빈 페이지 체크 없이 무조건 200개 추가될 때까지 크롤링\n")
         
-        total_inserted = 0
-        total_skipped = 0
-        target_count = 600  # 목표 개수
+        total_attempted = 0  # 시도한 개수
+        total_inserted = 0   # 실제 INSERT된 개수
+        total_duplicated = 0  # 중복 개수
+        total_skipped = 0    # 스킵된 개수
+        target_count = 200   # 목표 개수 (실제 DB 증가)
         
-        # 약 600개를 목표로 설정
+        # 카테고리 설정
         categories = [
-            (101, "경제 일반", 40),      # 각 카테고리당 40페이지
-            (258, "증권", 40),            # 각 카테고리당 40페이지
+            (101, "경제 일반"),
+            (258, "증권"),
         ]
         
         # 최근 7일치 크롤링
@@ -371,75 +371,117 @@ def main():
             date = datetime.now() - timedelta(days=i)
             dates_to_crawl.append(date.strftime("%Y%m%d"))
         
-        print(f"크롤링 대상: {len(categories)}개 카테고리 × {len(dates_to_crawl)}일 × 최대 40페이지")
-        print(f"목표: 약 {target_count}개 뉴스 수집\n")
+        print(f"크롤링 대상: {len(categories)}개 카테고리 × {len(dates_to_crawl)}일")
+        print(f"목표: 실제 DB 증가 {target_count}개\n")
         
         start_time = datetime.now()
+        max_pages_per_date = 50  # 날짜당 최대 페이지 수
         
-        for sid1, category_name, max_pages in categories:
+        # 무한 루프로 200개가 추가될 때까지 계속 크롤링
+        while True:
+            # 실제 DB 증가 개수 확인
+            current_db_count = verify_db_count(conn)
+            actual_increase = current_db_count - before_count
+            
+            if actual_increase >= target_count:
+                print(f"\n✓ 목표 달성! 실제 DB 증가: {actual_increase}개 (목표: {target_count}개)")
+                break
+            
             print(f"\n{'='*60}")
-            print(f"카테고리: {category_name} (sid1={sid1})")
+            print(f"현재 실제 DB 증가: {actual_increase}개 / 목표: {target_count}개")
             print(f"{'='*60}")
             
-            for date_idx, date_str in enumerate(dates_to_crawl, 1):
-                # 목표 개수 달성 시 중단
-                if total_inserted >= target_count:
-                    print(f"\n✓ 목표 개수({target_count}개) 달성! 크롤링 중단")
+            found_new_news = False
+            
+            for sid1, category_name in categories:
+                # 실제 DB 증가 개수 확인
+                current_db_count = verify_db_count(conn)
+                actual_increase = current_db_count - before_count
+                
+                if actual_increase >= target_count:
                     break
                 
-                print(f"\n[{date_idx}/{len(dates_to_crawl)}] 날짜: {date_str}")
+                print(f"\n카테고리: {category_name} (sid1={sid1})")
                 
-                empty_page_count = 0
-                page_inserted = 0
-                
-                for page in range(1, max_pages + 1):
-                    # 목표 개수 달성 시 중단
-                    if total_inserted >= target_count:
+                for date_idx, date_str in enumerate(dates_to_crawl, 1):
+                    # 실제 DB 증가 개수 확인
+                    current_db_count = verify_db_count(conn)
+                    actual_increase = current_db_count - before_count
+                    
+                    if actual_increase >= target_count:
                         break
                     
-                    print(f"\n▶ {page}페이지 크롤링 중... (현재: {total_inserted}개 / 목표: {target_count}개)")
+                    print(f"\n[{date_idx}/{len(dates_to_crawl)}] 날짜: {date_str} (실제 DB 증가: {actual_increase}/{target_count}개)")
                     
-                    news_list = parse_news_list(conn, sid1=sid1, page=page, date_str=date_str)
-                    
-                    if not news_list:
-                        empty_page_count += 1
-                        if empty_page_count >= 3:  # 연속 3페이지 빈 페이지면 다음 날짜로
-                            print(f"  → 연속 빈 페이지 {empty_page_count}개, 다음 날짜로 이동")
-                            break
-                        continue
-                    else:
-                        empty_page_count = 0
-                    
-                    print(f"  → {len(news_list)}개 뉴스 발견")
-                    
-                    for news in news_list:
-                        # 목표 개수 달성 시 중단
-                        if total_inserted >= target_count:
+                    for page in range(1, max_pages_per_date + 1):
+                        # 실제 DB 증가 개수 확인
+                        current_db_count = verify_db_count(conn)
+                        actual_increase = current_db_count - before_count
+                        
+                        if actual_increase >= target_count:
                             break
                         
-                        if insert_news(conn, news):
-                            total_inserted += 1
-                            page_inserted += 1
-                            stock_info = f" [{news['stock_code']}]" if news['stock_code'] else ""
-                            print(f"  ✓ 저장 ({total_inserted}/{target_count}): {news['title'][:45]}...{stock_info}")
-                        else:
-                            total_skipped += 1
+                        print(f"\n▶ {page}페이지 크롤링 중... (실제 DB 증가: {actual_increase}/{target_count}개)")
+                        
+                        news_list = parse_news_list(conn, sid1=sid1, page=page, date_str=date_str)
+                        
+                        if not news_list:
+                            # 빈 페이지여도 계속 진행 (빈 페이지 체크 없음)
+                            print(f"  → 빈 페이지, 계속 진행...")
+                            continue
+                        
+                        print(f"  → {len(news_list)}개 뉴스 발견")
+                        
+                        for news in news_list:
+                            # 실제 DB 증가 개수 확인
+                            current_db_count = verify_db_count(conn)
+                            actual_increase = current_db_count - before_count
+                            
+                            if actual_increase >= target_count:
+                                break
+                            
+                            total_attempted += 1
+                            success, is_inserted = insert_news(conn, news)
+                            
+                            if success:
+                                if is_inserted:
+                                    total_inserted += 1
+                                    found_new_news = True
+                                    stock_info = f" [{news['stock_code']}]" if news['stock_code'] else ""
+                                    print(f"  ✓ 저장 ({total_inserted}개, 실제 DB 증가: {actual_increase + 1}/{target_count}): {news['title'][:45]}...{stock_info}")
+                                else:
+                                    total_duplicated += 1
+                                    if total_duplicated % 10 == 0:  # 10개마다 출력
+                                        print(f"  ⊙ 중복 (시도: {total_attempted}개, 중복: {total_duplicated}개, 실제 추가: {total_inserted}개)")
+                            else:
+                                total_skipped += 1
+                                print(f"  ✗ 실패: {news['title'][:45]}...")
+                        
+                        time.sleep(0.1)
                     
-                    current_count = verify_db_count(conn)
-                    print(f"  [현재 DB 뉴스 개수: {current_count}개]")
-                    
-                    time.sleep(0.1)
+                    if actual_increase >= target_count:
+                        break
                 
-                if page_inserted > 0:
-                    print(f"\n  날짜 {date_str} 완료: {page_inserted}개 저장 (누적: {total_inserted}개)")
-                
-                # 목표 개수 달성 시 중단
-                if total_inserted >= target_count:
+                if actual_increase >= target_count:
                     break
             
-            # 목표 개수 달성 시 중단
-            if total_inserted >= target_count:
+            # 실제 DB 증가 개수 확인
+            current_db_count = verify_db_count(conn)
+            actual_increase = current_db_count - before_count
+            
+            if actual_increase >= target_count:
                 break
+            
+            # 새 뉴스를 찾지 못했으면 날짜 범위 확장
+            if not found_new_news:
+                print(f"\n⚠ 새 뉴스를 찾지 못했습니다. 날짜 범위를 확장합니다...")
+                # 최근 7일 → 최근 14일로 확장
+                dates_to_crawl = []
+                for i in range(14):
+                    date = datetime.now() - timedelta(days=i)
+                    dates_to_crawl.append(date.strftime("%Y%m%d"))
+                print(f"날짜 범위 확장: 최근 14일")
+                time.sleep(1)
         
         end_time = datetime.now()
         elapsed_time = (end_time - start_time).total_seconds()
@@ -448,18 +490,20 @@ def main():
         print("\n" + "=" * 60)
         print("크롤링 완료!")
         print("=" * 60)
-        print(f"성공적으로 저장: {total_inserted}개")
-        print(f"중복/스킵: {total_skipped}개")
+        print(f"시도한 개수: {total_attempted}개")
+        print(f"실제 INSERT된 개수: {total_inserted}개")
+        print(f"중복 개수: {total_duplicated}개")
+        print(f"스킵된 개수: {total_skipped}개")
         print(f"시작 전 DB 개수: {before_count}개")
         print(f"종료 후 DB 개수: {after_count}개")
-        print(f"실제 증가: {after_count - before_count}개")
+        print(f"실제 DB 증가: {after_count - before_count}개")
         print(f"소요 시간: {elapsed_time/60:.1f}분 ({elapsed_time:.0f}초)")
         print("=" * 60)
         
-        if total_inserted >= target_count:
-            print(f"\n✓ 목표 개수({target_count}개) 달성!")
+        if after_count - before_count >= target_count:
+            print(f"\n✓ 목표 달성! 실제 DB 증가 {after_count - before_count}개 (목표: {target_count}개)")
         else:
-            print(f"\n⚠ 목표 개수({target_count}개) 미달성: {total_inserted}개 수집됨")
+            print(f"\n⚠ 목표 미달성: 실제 DB 증가 {after_count - before_count}개 (목표: {target_count}개)")
         
     except Exception as e:
         print(f"에러 발생: {e}")
@@ -471,5 +515,4 @@ def main():
             print("\nDB 연결 종료")
 
 if __name__ == "__main__":
-
     main()

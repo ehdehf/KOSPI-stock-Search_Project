@@ -29,6 +29,9 @@ public class SecurityConfig {
             .and()
             .authorizeHttpRequests()
                 .antMatchers("/auth/**").permitAll()        // 로그인/회원가입 API
+                .antMatchers("/auth/kakao/**").permitAll() //카카오 로그인
+                .antMatchers("/auth/naver/**").permitAll() //네이버 로그인
+                .antMatchers("/auth/google/**").permitAll() //구글 로그인
                 .antMatchers("/api/stocks/**").permitAll()  // 공개 API
                 .antMatchers("/api/news/**").permitAll()    // 공개 API
                 .antMatchers("/admin/**").hasRole("ADMIN")  // 추가
