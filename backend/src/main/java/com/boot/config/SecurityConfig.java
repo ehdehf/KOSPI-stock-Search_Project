@@ -1,5 +1,7 @@
 package com.boot.config;
 
+import com.boot.security.JwtAuthenticationFilter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -8,10 +10,14 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final JwtAuthenticationFilter jwtFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -21,18 +27,21 @@ public class SecurityConfig {
             .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // JWT 방식
             .and()
-            .authorizeRequests()
-                .antMatchers("/auth/**").permitAll()    // 로그인/회원가입 허용
-                .antMatchers("/api/**").permitAll()     // Python 크롤러용 API 허용
-                .anyRequest().authenticated()           // 나머지는 인증필요(원하면 수정 가능)
+            .authorizeHttpRequests()
+                .antMatchers("/auth/**").permitAll()        // 로그인/회원가입 API
+                .antMatchers("/api/stocks/**").permitAll()  // 공개 API
+                .antMatchers("/api/news/**").permitAll()    // 공개 API
+                .antMatchers("/admin/**").hasRole("ADMIN")  // 추가
+                .anyRequest().authenticated()                   // 나머지는 인증 필요
             .and()
+            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
             .formLogin().disable()
             .httpBasic().disable();
 
         return http.build();
     }
-
-    // 비밀번호 암호화
+    
+    //비밀번호 암호화
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

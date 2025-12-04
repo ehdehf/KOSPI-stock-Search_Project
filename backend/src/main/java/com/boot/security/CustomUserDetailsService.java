@@ -27,7 +27,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         return User
                 .withUsername(user.getEmail())
                 .password(user.getPassword())  // password는 필요한 상황에만 사용됨
-                .roles(user.getRole())         // ROLE_USER / ROLE_ADMIN
+                .roles(user.getRole())         // USER / ADMIN
                 .build();
     }
 }
