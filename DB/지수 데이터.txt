@@ -1,0 +1,85 @@
+-- KOSPI 지수 시계열 데이터를 저장할 테이블
+
+CREATE TABLE STOCK_INDEX_DATA (
+
+    -- 기본 키 및 식별 정보
+
+    IDX_NM             VARCHAR2(100) NOT NULL, -- 지수명 (예: 코스피)
+
+    BASE_DT            VARCHAR2(8)   NOT NULL, -- 기준 일자 (YYYYMMDD, 시계열 X축)
+
+    
+
+    -- 시세 데이터 (차트 Y축으로 사용)
+
+    CL_PR              NUMBER(10, 2), -- 종가 (Closing Price)
+
+    VS                 NUMBER(10, 2), -- 전일 대비 차이 (Value Spread)
+
+    FLT_RT             NUMBER(5, 2),  -- 등락률 (%) (Fluctuation Rate)
+
+    
+
+    -- 상세 데이터
+
+    MK_P               NUMBER(10, 2), -- 시가 (Market Price)
+
+    HI_PR              NUMBER(10, 2), -- 고가 (High Price)
+
+    LO_PR              NUMBER(10, 2), -- 저가 (Low Price)
+
+    TR_QU              NUMBER,        -- 거래량 (Trading Quantity)
+
+    TR_PRC             NUMBER,        -- 거래대금 (Trading Price)
+
+    TOT_AMT            NUMBER,        -- 상장 시가총액 합계 (Total Amount)
+
+
+
+    -- 관리용
+
+    UPDATED_AT         DATE DEFAULT SYSDATE,
+
+    
+
+    -- 복합 기본 키 설정: 동일 지수명 + 동일 날짜는 중복될 수 없음
+
+    CONSTRAINT PK_STOCK_INDEX PRIMARY KEY (IDX_NM, BASE_DT)
+
+);
+
+
+
+
+
+-- KOSDAQ 지수 시계열 데이터를 저장할 테이블 (KOSPI와 동일 구조로 분리)
+
+CREATE TABLE STOCK_INDEX_DATA_KOSDAQ (
+
+    IDX_NM             VARCHAR2(100) NOT NULL,
+
+    BASE_DT            VARCHAR2(8)   NOT NULL,
+
+    CL_PR              NUMBER(10, 2),
+
+    VS                 NUMBER(10, 2),
+
+    FLT_RT             NUMBER(5, 2),
+
+    MK_P               NUMBER(10, 2),
+
+    HI_PR              NUMBER(10, 2),
+
+    LO_PR              NUMBER(10, 2),
+
+    TR_QU              NUMBER,
+
+    TR_PRC             NUMBER,
+
+    TOT_AMT            NUMBER,
+
+    UPDATED_AT         DATE DEFAULT SYSDATE,
+
+    CONSTRAINT PK_STOCK_INDEX_KOSDAQ PRIMARY KEY (IDX_NM, BASE_DT)
+
+);
