@@ -22,6 +22,8 @@ import VerifyPage from './pages/VerifyPage';
 
 import TestStockDetailPage from './pages/TestStockDetailPage';
 
+import FindPasswordPage from './pages/FindPasswordPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 
 function App() {
   return (
@@ -44,6 +46,8 @@ function App() {
             <Route path="search" element={<SearchResultPage />} />
             <Route path="verify" element={<VerifyPage />} />
             <Route path="/chart/:code" element={<TestStockDetailPage />} />
+            <Route path="find-pw" element={<FindPasswordPage />} />
+            <Route path="reset-password" element={<ResetPasswordPage />} />
           </Route>
         </Routes>
       </AuthProvider>
