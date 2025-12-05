@@ -209,13 +209,13 @@ public class AuthService {
                 token,
                 expireAt.format(DT_FORMAT)
         );
-
-        // 실제 서비스에서는 이메일 발송
+        
+        // 이메일 발송
+        mailService.sendPasswordResetMail(email, token);
+        
         // 개발 중에는 token을 응답으로 내려서 Postman 테스트 가능하도록 함
         return ResponseEntity.ok("비밀번호 재설정 토큰이 발급되었습니다. (dev token: " + token + ")");
     }
-
-
 
     // 5-2) 토큰 유효성 검증
     public ResponseEntity<?> verifyResetToken(String token) {
