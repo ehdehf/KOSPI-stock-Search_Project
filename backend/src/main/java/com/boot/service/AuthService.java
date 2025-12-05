@@ -190,8 +190,17 @@ public class AuthService {
         if (user == null) {
             return ResponseEntity.status(404).body("해당 이메일의 계정을 찾을 수 없습니다.");
         }
-
-        // 토큰 발급 + 만료시간 30분
+        
+        // 소셜-only 계정 → password가 없음(null)
+        if (user.getPassword() == null || user.getPassword().isBlank()) {
+            return ResponseEntity.status(400).body(
+                    "해당 계정은 소셜 로그인(" + user.getProvider() + ")으로 가입되었습니다.\n" +
+                    "비밀번호가 존재하지 않으므로 재설정할 수 없습니다.\n" +
+                    user.getProvider() + " 로그인으로 이용해주세요."
+            );
+        }
+        
+        // 토큰 발급 + 만료시간 30분,일반 계정 + 소셜 연동 계정 중 비밀번호가 있는 경우는 정상 처리
         String token = UUID.randomUUID().toString();
         LocalDateTime expireAt = LocalDateTime.now().plusMinutes(30);
 
