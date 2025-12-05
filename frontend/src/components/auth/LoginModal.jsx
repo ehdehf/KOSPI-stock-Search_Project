@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-// 스타일 객체 (라이브러리 의존성 없음)
+// 스타일 객체 (라이브러리 없이 작동)
 const styles = {
   overlay: {
     position: 'fixed',
@@ -46,7 +46,7 @@ const styles = {
   button: {
     width: '100%',
     padding: '12px',
-    backgroundColor: '#007bff', // 기본 파란색
+    backgroundColor: '#007bff',
     color: 'white',
     border: 'none',
     borderRadius: '4px',
@@ -55,15 +55,25 @@ const styles = {
     fontSize: '16px',
   },
   footer: {
-    marginTop: '20px',
+    marginTop: '25px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px', // 두 줄 사이의 간격
+  },
+  // ⭐ [핵심] 두 줄에 공통으로 적용될 스타일 (완벽 통일)
+  footerRow: {
     fontSize: '13px',
     color: '#666',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: '5px' // 글자와 링크 사이 간격
   },
   link: {
     color: '#007bff',
     cursor: 'pointer',
-    marginLeft: '5px',
     fontWeight: 'bold',
+    textDecoration: 'none'
   }
 };
 
@@ -84,45 +94,35 @@ function LoginModal({ onClose }) {
     }
 
     try {
-      // 1. 로그인 요청
       const response = await axios.post('/auth/login', {
         email: formData.email,
         password: formData.password
       });
 
       if (response.status === 200) {
-        console.log("로그인 성공 응답:", response.data);
-        
-        // 2. 토큰 및 유저 정보 추출
-        // 백엔드 응답 구조: { accessToken: "...", refreshToken: "...", user: {...} }
-        // (만약 구조가 다르면 콘솔 로그 보고 변수명 맞춰주세요)
         const { accessToken, refreshToken, token } = response.data;
         const user = response.data.user || response.data.userInfo;
 
-        // 3. 토큰 저장 (Access + Refresh)
-        // (만약 accessToken 필드가 없으면 token 필드 사용 - 예전 코드 호환)
+        // 토큰 저장 (Access + Refresh)
         localStorage.setItem('accessToken', accessToken || token);
-        if (refreshToken) {
-            localStorage.setItem('refreshToken', refreshToken);
-        }
+        if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
 
-        // 4. 유저 정보 저장 (없으면 임시 생성)
+        // 유저 정보 저장
         const userInfo = user || { email: formData.email, fullName: '회원' };
         localStorage.setItem('user', JSON.stringify(userInfo));
 
         alert("로그인 성공!");
         onClose();
-        window.location.reload(); // 헤더 갱신을 위해 새로고침
+        window.location.reload(); 
       }
 
     } catch (error) {
       console.error("로그인 실패:", error);
-
       if (error.response) {
         const status = error.response.status;
         const msg = error.response.data;
 
-        // [403 에러] 이메일 미인증 상태
+        // 이메일 미인증 처리 (403)
         if (status === 403 && typeof msg === 'string' && msg.includes('이메일 인증')) {
             if (window.confirm(`${msg}\n\n지금 인증 코드를 입력하시겠습니까?`)) {
                 onClose();
@@ -130,14 +130,11 @@ function LoginModal({ onClose }) {
             }
             return;
         }
-
-        // [401 에러] 비밀번호 틀림
+        // 비밀번호 틀림 처리 (401)
         if (status === 401) {
             alert("아이디 또는 비밀번호가 일치하지 않습니다.");
             return;
         }
-        
-        // 그 외 에러 메시지 출력
         alert(typeof msg === 'string' ? msg : "로그인에 실패했습니다.");
       } else {
         alert("서버와 연결할 수 없습니다.");
@@ -146,9 +143,7 @@ function LoginModal({ onClose }) {
   };
 
   const handleOverlayClick = (e) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
+    if (e.target === e.currentTarget) onClose();
   };
 
   return (
@@ -156,34 +151,46 @@ function LoginModal({ onClose }) {
       <div style={styles.content}>
         <button style={styles.closeBtn} onClick={onClose}>X</button>
         <h2 style={{ marginBottom: '20px', color: '#333' }}>로그인</h2>
+        
         <form onSubmit={handleSubmit}>
           <input 
-            type="email" 
-            name="email" 
-            placeholder="이메일"
-            value={formData.email} 
-            onChange={handleChange}
+            type="email" name="email" placeholder="이메일"
+            value={formData.email} onChange={handleChange}
             style={styles.input}
           />
           <input 
-            type="password" 
-            name="password" 
-            placeholder="비밀번호"
-            value={formData.password} 
-            onChange={handleChange}
+            type="password" name="password" placeholder="비밀번호"
+            value={formData.password} onChange={handleChange}
             style={styles.input}
           />
           <button type="submit" style={styles.button}>로그인</button>
         </form>
+
+        {/* ⭐ 하단 링크 영역 (스타일 통일됨) */}
         <div style={styles.footer}>
-            계정이 없으신가요? 
-            <span 
-              style={styles.link}
-              onClick={() => { onClose(); navigate('/signup'); }}
-            >
-              회원가입
-            </span>
+            {/* 줄 1: 회원가입 */}
+            <div style={styles.footerRow}>
+                <span>계정이 없으신가요?</span>
+                <span 
+                  style={styles.link}
+                  onClick={() => { onClose(); navigate('/signup'); }}
+                >
+                  회원가입
+                </span>
+            </div>
+            
+            {/* 줄 2: 비밀번호 찾기 */}
+            <div style={styles.footerRow}>
+                <span>비밀번호를 잊으셨나요?</span>
+                <span 
+                  style={styles.link}
+                  onClick={() => { onClose(); navigate('/find-pw'); }}
+                >
+                  비밀번호 찾기
+                </span>
+            </div>
         </div>
+
       </div>
     </div>
   );

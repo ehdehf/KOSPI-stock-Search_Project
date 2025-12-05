@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios'; // ⭐ axios 임포트 필수!
+import axios from 'axios'; 
 
-// 경로 확인 (auth 폴더인지 common 폴더인지)
 import LoginModal from '../auth/LoginModal'; 
 
 const StyledHeader = styled.header`
@@ -84,9 +83,57 @@ const LoginButton = styled.button`
   &:hover { opacity: 0.9; }
 `;
 
-const LogoutButton = styled(LoginButton)`
-  background-color: #6c757d; 
+// 드롭다운 관련 스타일
+const UserProfile = styled.div`
+  position: relative; /* 드롭다운 위치 기준점 */
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 14px;
+  padding: 8px 12px;
+  border-radius: 20px;
+  transition: background 0.2s;
+
+  &:hover {
+    background-color: #f1f1f1;
+  }
 `;
+
+const DropdownMenu = styled.div`
+  position: absolute;
+  top: 120%; /* 이름 바로 아래 */
+  right: 0;
+  width: 160px;
+  background-color: white;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  overflow: hidden;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+`;
+
+const DropdownItem = styled.button`
+  background: white;
+  border: none;
+  padding: 12px 15px;
+  text-align: left;
+  font-size: 13px;
+  color: #333;
+  cursor: pointer;
+  border-bottom: 1px solid #f9f9f9;
+
+  &:hover {
+    background-color: #f8f9fa;
+    color: var(--primary-blue);
+  }
+
+  &:last-child {
+    border-bottom: none;
+    color: #dc3545; /* 로그아웃은 빨간색 느낌 */
+  }
+`;
+
 
 function Header() {
   const navigate = useNavigate();
@@ -94,6 +141,7 @@ function Header() {
   const [keyword, setKeyword] = useState('');
   
   const [user, setUser] = useState(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -102,43 +150,44 @@ function Header() {
     }
   }, []);
 
-  // ⭐ [수정됨] 백엔드 API 호출을 포함한 로그아웃
+  // 로그아웃
   const handleLogout = async () => {
     if (!user || !user.email) {
-        // 유저 정보가 없으면 그냥 로컬만 지우고 끝냄
         localStorage.clear();
         setUser(null);
+        setIsDropdownOpen(false);
         navigate('/');
         return;
     }
 
     try {
-        // 1. 백엔드에 로그아웃 요청 (Refresh Token 삭제용)
-        // 명세서: POST /auth/logout, param: email
-        // (이메일 중복확인 때처럼 params로 보냄)
-        await axios.post('/auth/logout', null, {
-            params: { email: user.email }
+        // 백엔드에 로그아웃 요청 (JSON 바디)
+        await axios.post('/auth/logout', { 
+            email: user.email 
         });
-        
         console.log("서버 로그아웃 성공");
-
     } catch (error) {
-        console.error("서버 로그아웃 실패 (그래도 클라이언트는 로그아웃 처리함):", error);
+        console.error("서버 로그아웃 실패:", error);
     } finally {
-        // 2. 성공하든 실패하든 브라우저의 정보는 싹 지워야 함
+        // 로컬 토큰 모두 삭제
         localStorage.removeItem('user');
         localStorage.removeItem('token');
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         
         setUser(null);
-        alert('로그아웃되었습니다.'); // 명세서 메시지와 일치시킴
+        setIsDropdownOpen(false);
+        alert('로그아웃되었습니다.');
         navigate('/');
     }
   };
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
+
+  const toggleDropdown = () => {
+    setIsDropdownOpen(!isDropdownOpen);
+  };
 
   const handleSearch = () => {
     if (keyword.trim()) {
@@ -177,12 +226,25 @@ function Header() {
           </SearchContainer>
 
           {user ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span style={{ fontSize: '14px', fontWeight: 'bold' }}>
-                {user.fullName || user.email}님
-              </span>
-              <LogoutButton onClick={handleLogout}>로그아웃</LogoutButton>
-            </div>
+            <UserProfile onClick={toggleDropdown}>
+              {/* 이름 클릭 영역 */}
+              <span>{user.fullName || user.email}님 ▼</span>
+              
+              {/* 드롭다운 메뉴 */}
+              {isDropdownOpen && (
+                <DropdownMenu>
+                  <DropdownItem onClick={() => navigate('/dashboard')}>
+                    마이페이지
+                  </DropdownItem>
+                  <DropdownItem onClick={() => navigate('/find-pw')}>
+                    비밀번호 변경
+                  </DropdownItem>
+                  <DropdownItem onClick={handleLogout}>
+                    로그아웃
+                  </DropdownItem>
+                </DropdownMenu>
+              )}
+            </UserProfile>
           ) : (
             <LoginButton onClick={openModal}>로그인</LoginButton>
           )}
