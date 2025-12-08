@@ -286,4 +286,15 @@ public class StockNewsServiceImpl implements StockNewsService {
         }
         return 0.0;
     }
+    
+    @Override
+    public List<String> getIndustries() {
+        return stockNewsDAO.getIndustries();
+    }
+
+    @Override
+    public List<StockNewsDTO> getNewsByIndustry(String industry) {
+        return stockNewsDAO.getNewsByIndustry(industry);
+    }
+
 }

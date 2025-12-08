@@ -143,5 +143,23 @@
         FROM STOCK_NEWS
         WHERE SENTIMENT IS NOT NULL
     </select>
+    
+    <!-- ✅ 산업 목록 조회 -->
+	<select id="getIndustries" resultType="string">
+	    SELECT DISTINCT INDUSTRY
+	    FROM STOCK_INDUSTRY
+	    ORDER BY INDUSTRY
+	</select>
+	
+	<!-- ✅ 산업별 뉴스 조회 -->
+	<select id="getNewsByIndustry" resultType="com.boot.dto.StockNewsDTO">
+	    SELECT n.*
+	    FROM STOCK_NEWS n
+	    JOIN STOCK_INDUSTRY i
+	      ON n.STOCK_CODE = i.STOCK_CODE
+	    WHERE i.INDUSTRY = #{industry}
+	    ORDER BY n.NEWS_DATE DESC
+	</select>
+
 
 </mapper>

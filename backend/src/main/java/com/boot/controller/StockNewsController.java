@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/api/news")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "http://localhost:5173")
 public class StockNewsController {
 
     private final StockNewsService stockNewsService;
@@ -83,4 +84,17 @@ public class StockNewsController {
     public Map<String, Object> getOverallSentimentSummary() {
         return stockNewsService.getOverallSentimentSummary();
     }
+    
+ // ✅ 산업 목록 (중복 제거)
+    @GetMapping("/industries")
+    public List<String> getIndustries() {
+        return stockNewsService.getIndustries();
+    }
+
+    // ✅ 산업별 뉴스 조회
+    @GetMapping("/by-industry")
+    public List<StockNewsDTO> getNewsByIndustry(@RequestParam String industry) {
+        return stockNewsService.getNewsByIndustry(industry);
+    }
+
 }

@@ -1,13 +1,20 @@
-import React, { useState, useEffect } from 'react';
+// src/pages/HomePage.jsx
+import React, { useState, useEffect, useRef } from 'react';
 import styled, { keyframes, css } from 'styled-components';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 
-// 🌟 차트 컴포넌트 import (경로가 맞는지 확인해주세요)
+// 🌟 차트 컴포넌트 import (KospiLineChart를 사용하기 위해 필요)
 import KosdaqLineChart from '../components/shared/KosdaqLineChart';
 import KospiLineChart from '../components/shared/KospiLineChart';
 
-// --- 임시 컴포넌트 (기존 스타일 유지) ---
+
+// 🔴 경로: 상위 폴더(src)로 가서 components/shared로 접근
+// 실제 컴포넌트는 나중에 구현한다고 가정하고 빈 박스로 대체합니다.
+// import KospiIndexCard from '../components/shared/KospiIndexCard'; 
+// import NewsCard from '../components/shared/NewsCard'; 
+
+// --- 임시 컴포넌트 ---
 const KospiIndexCard = styled.div`
   background-color: #ffffff;
   border-radius: 12px;
@@ -41,7 +48,7 @@ const NewsCard = styled.div`
 
 const HomePageContainer = styled.div`
   padding: 30px;
-  background-color: #f0f2f5;
+  background-color: #f0f2f5; /* 전체 배경색 */
   min-height: 100vh;
 `;
 
@@ -60,7 +67,7 @@ const HeaderSection = styled.header`
 
 const IndexAndMarketSection = styled.div`
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, 1fr); /* 지수 2개(Kospi/Kosdaq)와 급등/급락 종목 1개 */
   gap: 20px;
   margin-bottom: 40px;
 `;
@@ -77,26 +84,11 @@ const StockList = styled.ul`
   padding: 0;
   margin-top: 15px;
   & > li {
+    display: flex;
+    justify-content: space-between;
     padding: 8px 0;
     border-bottom: 1px dashed #eee;
     font-size: 0.95rem;
-    /* Link가 내부를 꽉 채우도록 설정 */
-    display: flex; 
-    align-items: center;
-  }
-`;
-
-// ⭐ 링크 스타일드 컴포넌트 추가 (클릭 영역 확장 및 디자인 유지)
-const StyledLink = styled(Link)`
-  display: flex;
-  justify-content: space-between;
-  width: 100%;
-  text-decoration: none;
-  color: inherit;
-  cursor: pointer;
-
-  &:hover {
-    background-color: #f9fafb; /* 호버 시 살짝 배경색 변경 */
   }
 `;
 
@@ -122,9 +114,20 @@ const KeywordTabs = styled.div`
   display: flex;
   margin-bottom: 20px;
   border-bottom: 2px solid #e5e7eb;
+  overflow-x: auto;
+  white-space: nowrap;
+  cursor: grab;
+  user-select: none;
+
+  scrollbar-width: none; /* Firefox */
+  &::-webkit-scrollbar {
+    display: none; /* Chrome */
+  }
 `;
 
+
 const KeywordTab = styled.button`
+  flex-shrink: 0;
   background: none;
   border: none;
   padding: 10px 15px;
@@ -134,8 +137,7 @@ const KeywordTab = styled.button`
   color: ${props => (props.active ? '#3f51b5' : '#6b7280')};
   border-bottom: ${props => (props.active ? '3px solid #3f51b5' : '3px solid transparent')};
   transition: all 0.2s;
-  
-  /* active prop 경고 회피용 */
+  /* 🌟 비표준 prop 경고를 무시하고 DOM에 전달하지 않음 */
   &[active="true"] { 
     font-weight: bold;
     color: #3f51b5;
@@ -145,7 +147,7 @@ const KeywordTab = styled.button`
 
 const NewsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, 1fr); /* 뉴스는 2열로 표시 */
   gap: 20px;
 `;
 
@@ -169,6 +171,7 @@ const StockMarqueeSection = styled.div`
 `;
 
 const StockMarqueeContainer = styled.div`
+  /* 애니메이션 속도를 60초로 설정 */
   animation: ${marquee} 60s linear infinite; 
   &:hover {
     animation-play-state: paused; 
@@ -178,6 +181,7 @@ const StockMarqueeContainer = styled.div`
 `;
 
 const MarqueeContent = styled.div`
+  /* flex: 0 0 50%로 너비 고정하여 끊김 없는 순환 구현 */
   flex: 0 0 50%; 
   display: inline-flex; 
   gap: 25px; 
@@ -194,6 +198,7 @@ const StockPill = styled.span`
   transition: transform 0.1s;
   
   ${props => {
+    // 🌟 boolean prop 경고를 피하기 위해 string "true" 또는 "false"로 사용
     const rateString = props.rate ? props.rate.toString().replace(/%|\+/g, '') : '0';
     const isPositive = parseFloat(rateString) > 0;
     const color = isPositive ? '#10b981' : '#ef4444'; 
@@ -221,6 +226,8 @@ const StockName = styled.span`
 // ----------------------------------------------------
 // 🌟 유틸리티 함수
 // ----------------------------------------------------
+
+/** 등락률을 포맷합니다. (예: 1.49 -> +1.49%) */
 const formatRate = (rate) => {
     if (rate === undefined || rate === null) return '-';
     const numericRate = Number(rate); 
@@ -234,43 +241,72 @@ const formatRate = (rate) => {
 // --- HomePage Function ---
 function HomePage() {
 
+      // ✅ 산업 탭 드래그 스크롤용 ref & 상태
+    const scrollRef = useRef(null);
+    const [isDragging, setIsDragging] = useState(false);
+    const [startX, setStartX] = useState(0);
+    const [scrollLeft, setScrollLeft] = useState(0);
+
+    const onMouseDown = (e) => {
+      setIsDragging(true);
+      setStartX(e.pageX - scrollRef.current.offsetLeft);
+      setScrollLeft(scrollRef.current.scrollLeft);
+    };
+
+    const onMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    const onMouseMove = (e) => {
+      if (!isDragging) return;
+      e.preventDefault();
+      const x = e.pageX - scrollRef.current.offsetLeft;
+      const walk = (x - startX) * 1.5; // ✅ 드래그 감도
+      scrollRef.current.scrollLeft = scrollLeft - walk;
+    };
+
+
     const [indexData, setIndexData] = useState({
       kospi: null,
       kosdaq: null,
     });
 
+    // ✅ ✅ ✅ 최신 지수 불러오기
     useEffect(() => {
       const fetchLatestIndex = async () => {
-        try {
-            const res = await axios.get('http://localhost:8484/api/chart/latest');
-            setIndexData({
-              kospi: res.data.kospi,
-              kosdaq: res.data.kosdaq,
-            });
-        } catch(e) {
-            console.error(e);
-        }
+        const res = await axios.get('http://localhost:8484/api/chart/latest');
+        setIndexData({
+          kospi: res.data.kospi,
+          kosdaq: res.data.kosdaq,
+        });
       };
       fetchLatestIndex();
     }, []);
 
+    
     const [activeKeyword, setActiveKeyword] = useState('Today_Hot');
 
+    // 🌟 1. API 데이터를 저장할 상태
     const [stockData, setStockData] = useState({
         rising: [],
         falling: [],
     });
     const [loading, setLoading] = useState(true);
 
+    // 🌟 2. 백엔드에서 급등/급락 종목 데이터를 불러오는 useEffect
     useEffect(() => {
         const fetchTopMovers = async () => {
             try {
                 setLoading(true);
+                // 🚨 스프링 부트 API 호출 경로 (급등/급락 종목)
                 const response = await axios.get('http://localhost:8484/api/stocks/top-movers');
+                
+                // 받아온 데이터 (Map 형태)를 상태에 저장
                 setStockData({
                     rising: response.data.rising,
                     falling: response.data.falling,
                 });
+
             } catch (error) {
                 console.error("Top Movers 데이터 로드 실패:", error);
                 setStockData({ rising: [], falling: [] });
@@ -283,22 +319,46 @@ function HomePage() {
     }, []);
 
 
-    const newsData = {
-        Today_Hot: [
-            { title: '핵심 뉴스 1', summary: '주요 이슈에 대한 간략한 요약입니다.' },
-            { title: '핵심 뉴스 2', summary: '시장에 큰 영향을 미치는 소식입니다.' },
-            { title: '핵심 뉴스 3', summary: '업계 동향 관련 새로운 정보입니다.' },
-            { title: '핵심 뉴스 4', summary: '경제 전문가들의 심층 분석 내용입니다.' },
-        ],
-        Technology: [
-            { title: '기술 뉴스 1', summary: 'AI, 반도체 관련 산업 소식입니다.' },
-            { title: '기술 뉴스 2', summary: '미래 산업 동향 관련 정보입니다.' },
-        ],
-        Economy: [
-            { title: '경제 뉴스 1', summary: '금리, 환율 관련 주요 발표입니다.' },
-            { title: '경제 뉴스 2', summary: '세계 경제 지표 관련 분석입니다.' },
-        ],
-    };
+    // ✅ 산업 목록
+    const [industries, setIndustries] = useState([]);
+
+    // ✅ 선택된 산업의 뉴스
+    const [newsList, setNewsList] = useState([]);
+    
+    // ✅ 산업 탭 목록 불러오기
+    useEffect(() => {
+      const fetchIndustries = async () => {
+        try {
+          const res = await axios.get('http://localhost:8484/api/news/industries');
+          setIndustries(res.data);
+          setActiveKeyword(res.data[0]); // ✅ 첫 산업 자동 선택
+        } catch (e) {
+          console.error("산업 목록 로딩 실패", e);
+        }
+      };
+      fetchIndustries();
+    }, []);
+
+    // ✅ 선택된 산업에 따른 뉴스 불러오기
+    useEffect(() => {
+      if (!activeKeyword) return;
+
+      const fetchNews = async () => {
+        try {
+          const res = await axios.get(
+            `http://localhost:8484/api/news/by-industry?industry=${activeKeyword}`
+          );
+          setNewsList(res.data);
+        } catch (e) {
+          console.error("뉴스 로딩 실패", e);
+        }
+      };
+
+    fetchNews();
+  }, [activeKeyword]);
+
+
+
     
     const [marqueeStocks, setMarqueeStocks] = useState([]);
 
@@ -306,10 +366,11 @@ function HomePage() {
       const fetchMarqueeStocks = async () => {
           try {
               const response = await axios.get('http://localhost:8484/api/stocks/marketcap');
+              // ✅ 기존 스타일 유지용 데이터 구조 맞추기
               const converted = response.data.map(stock => ({
                   name: stock.stockName,
                   rate: formatRate(stock.changeRate),
-                  code: stock.stockCode 
+                  code: stock.stockCode   // ✅ 종목코드 추가
               }));
 
               setMarqueeStocks(converted);
@@ -322,12 +383,15 @@ function HomePage() {
       fetchMarqueeStocks();
   }, []);
 
+
+
+    // Marquee 콘텐츠 렌더링 함수
     const renderMarqueeContent = () => (
         <>
             {marqueeStocks.map((stock, index) => (
                 <Link
                     key={index}
-                    to={`/stock/${stock.code}`}
+                    to={`/stock/${stock.code}`}   // ✅ 클릭 시 이동
                     style={{ textDecoration: 'none' }}
                 >
                     <StockPill rate={stock.rate}>
@@ -339,6 +403,8 @@ function HomePage() {
         </>
     );
 
+
+
     return (
         <HomePageContainer>
             {/* 1. 헤더 */}
@@ -349,7 +415,7 @@ function HomePage() {
 
             {/* 2. 지수 및 급등/급락 종목 영역 */}
             <IndexAndMarketSection>
-                {/* Kospi */}
+                {/* Kospi 지수 (그래프 포함 영역) */}
                 <KospiIndexCard>
                     <h3>🇰🇷 KOSPI 지수</h3>
                     <p>
@@ -364,12 +430,25 @@ function HomePage() {
                       )}
                     </p>
                     
-                    <div style={{ width: '100%', marginTop: '15px', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)', borderRadius: '6px', padding: '10px', backgroundColor: '#f9f9f9' }}>
+                    {/* ⭐ Kospi Line Chart 컴포넌트 삽입 */}
+                    <div style={{ 
+                        width: '100%', 
+                        marginTop: '15px', 
+                        // 🌟 그림자 스타일 추가: 차트 영역을 구분
+                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)', 
+                        borderRadius: '6px',
+                        padding: '10px',
+                        backgroundColor: '#f9f9f9' // 차트 배경을 약간 다르게 설정
+                    }}>
                         <KospiLineChart />
                     </div>
+                    
+                    <p style={{ fontSize: '0.8rem', marginTop: '10px', color: '#888' }}>
+                        **그래프 영역** (KospiIndexCard 컴포넌트 내부)
+                    </p>
                 </KospiIndexCard>
 
-                {/* Kosdaq */}
+                {/* Kosdaq 지수 (그래프 포함 영역) - Kospi와 동일 스타일 적용 */}
                 <KospiIndexCard>
                     <h3>🌐 KOSDAQ 지수</h3>
                     <p>
@@ -384,12 +463,23 @@ function HomePage() {
                       )}
                     </p>
                     
-                    <div style={{ width: '100%', marginTop: '15px', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)', borderRadius: '6px', padding: '10px', backgroundColor: '#f9f9f9' }}>
+                    {/* ⭐ Kosdaq Line Chart 컴포넌트 삽입 */}
+                    <div style={{ 
+                        width: '100%', 
+                        marginTop: '15px', 
+                        // 🌟 그림자 스타일 추가: Kospi와 동일하게 적용
+                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)', 
+                        borderRadius: '6px',
+                        padding: '10px',
+                        backgroundColor: '#f9f9f9'
+                    }}>
                         <KosdaqLineChart />
                     </div>
+
+                    <p style={{ fontSize: '0.8rem', marginTop: '10px', color: '#888' }}>**그래프 영역** (KosdaqIndexCard 컴포넌트 내부)</p>
                 </KospiIndexCard>
 
-                {/* 🔥 급등/급락 종목 */}
+                {/* 급등/급락 종목 3개씩 - API 데이터 바인딩 */}
                 <MarketStatusCard>
                     <h3 style={{ color: '#1e3a8a' }}>🔥 오늘 시장 주도주</h3>
                     
@@ -402,11 +492,8 @@ function HomePage() {
                             <StockList>
                                 {stockData.rising.map((stock, index) => (
                                     <li key={stock.stockCode || index}>
-                                        {/* ⭐ 수정된 부분: StyledLink 적용 */}
-                                        <StyledLink to={`/stock/${stock.stockCode}`}>
-                                            <strong>{stock.stockName || '정보 없음'}</strong>
-                                            <span style={{ color: '#ef4444', fontWeight: 'bold' }}>{formatRate(stock.changeRate)}</span>
-                                        </StyledLink>
+                                        <strong>{stock.stockName || '정보 없음'}</strong>
+                                        <span style={{ color: '#ef4444', fontWeight: 'bold' }}>{formatRate(stock.changeRate)}</span>
                                     </li>
                                 ))}
                             </StockList>
@@ -416,11 +503,8 @@ function HomePage() {
                             <StockList>
                                 {stockData.falling.map((stock, index) => (
                                     <li key={stock.stockCode || index}>
-                                        {/* ⭐ 수정된 부분: StyledLink 적용 */}
-                                        <StyledLink to={`/stock/${stock.stockCode}`}>
-                                            <strong>{stock.stockName || '정보 없음'}</strong>
-                                            <span style={{ color: '#3b82f6', fontWeight: 'bold' }}>{formatRate(stock.changeRate)}</span>
-                                        </StyledLink>
+                                        <strong>{stock.stockName || '정보 없음'}</strong>
+                                        <span style={{ color: '#3b82f6', fontWeight: 'bold' }}>{formatRate(stock.changeRate)}</span>
                                     </li>
                                 ))}
                             </StockList>
@@ -429,9 +513,10 @@ function HomePage() {
                 </MarketStatusCard>
             </IndexAndMarketSection>
 
-            {/* 마퀴 섹션 */}
+            {/* 🌟 2.5. 움직이는 종목 마퀴 (끊김 없는 순환 구조) */}
             <StockMarqueeSection>
                 <StockMarqueeContainer>
+                    {/* 콘텐츠를 두 번 렌더링하고 flex: 0 0 50%로 너비를 고정하여 끊김을 방지합니다. */}
                     <MarqueeContent>{renderMarqueeContent()}</MarqueeContent>
                     <MarqueeContent>{renderMarqueeContent()}</MarqueeContent> 
                 </StockMarqueeContainer>
@@ -446,10 +531,18 @@ function HomePage() {
                     </Link>
                 </NewsHeader>
 
-                <KeywordTabs>
-                    {Object.keys(newsData).map((keyword) => (
+                {/* 키워드 탭 */}
+                <KeywordTabs
+                  ref={scrollRef}
+                  onMouseDown={onMouseDown}
+                  onMouseMove={onMouseMove}
+                  onMouseUp={onMouseUp}
+                  onMouseLeave={onMouseUp}
+                  >
+                    {industries.map((keyword) => (
                         <KeywordTab
                             key={keyword}
+                            // 🌟 boolean prop 경고를 피하기 위해 문자열로 변환
                             active={(activeKeyword === keyword).toString()} 
                             onClick={() => setActiveKeyword(keyword)}
                         >
@@ -458,17 +551,44 @@ function HomePage() {
                     ))}
                 </KeywordTabs>
 
+                {/* 뉴스 리스트 (선택된 키워드에 따라) */}
                 <NewsGrid>
-                    {newsData[activeKeyword].map((news, index) => (
-                        <NewsCard key={index}>
-                            <h4 style={{ color: '#1e3a8a', marginBottom: '5px' }}>{news.title}</h4>
-                            <p>{news.summary}</p>
-                            <Link to={`/news/${index}`} style={{ fontSize: '0.8rem', color: '#6366f1', marginTop: '10px', display: 'block' }}>
-                                뉴스 상세 보기
-                            </Link>
-                        </NewsCard>
-                    ))}
-                </NewsGrid>
+    {newsList.length === 0 ? (
+      <div style={{
+        gridColumn: "1 / -1",
+        textAlign: "center",
+        padding: "40px 0",
+        color: "#888",
+        fontSize: "1rem"
+      }}>
+        📭 해당 산업의 뉴스가 없습니다.
+      </div>
+    ) : (
+      newsList.map((news, index) => (
+        <NewsCard key={index}>
+          <h4 style={{ color: '#1e3a8a', marginBottom: '5px' }}>
+            {news.title}
+          </h4>
+          <p>{news.content}</p>
+
+          <a
+            href={news.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              fontSize: '0.8rem',
+              color: '#6366f1',
+              marginTop: '10px',
+              display: 'block',
+            }}
+          >
+            원문 보기
+          </a>
+        </NewsCard>
+      ))
+    )}
+  </NewsGrid>
+
             </NewsSection>
         </HomePageContainer>
     );

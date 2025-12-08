@@ -36,4 +36,11 @@ public interface StockNewsService {
 
     // 전체 감성 통계
     Map<String, Object> getOverallSentimentSummary();
+    
+ // ✅ 산업 목록 조회
+    List<String> getIndustries();
+
+    // ✅ 산업별 뉴스 조회
+    List<StockNewsDTO> getNewsByIndustry(String industry);
+
 }
