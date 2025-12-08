@@ -29,7 +29,7 @@ public class IndexService {
     // 🌟 CacheEvictService 주입
     @Autowired private CacheEvictService cacheEvictService;
 
-    private static final String SERVICE_KEY = "my_apikey";
+    private static final String SERVICE_KEY = "bd57b87ea9aa7ba4d2e87197051340c26321a4c486cef4b994b2269766664ccb";
     private static final String API_ENDPOINT = "https://apis.data.go.kr/1160100/service/GetMarketIndexInfoService/getStockMarketIndex";
     private static final int ROWS_PER_PAGE = 500;
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");

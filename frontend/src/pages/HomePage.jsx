@@ -282,46 +282,50 @@ function HomePage() {
         ],
     };
     
-    const marqueeStocks = [
-        { name: '삼성전자', rate: '+1.50%' },
-        { name: 'SK하이닉스', rate: '+2.10%' },
-        { name: '에코프로비엠', rate: '-1.23%' },
-        { name: '현대차', rate: '+0.80%' },
-        { name: 'LG에너지솔루션', rate: '-0.90%' },
-        { name: '카카오', rate: '-1.70%' },
-        { name: '네이버', rate: '+0.55%' },
-        { name: '셀트리온', rate: '+3.15%' },
-        { name: '포스코퓨처엠', rate: '-2.50%' },
-        { name: '기아', rate: '+1.10%' },
-        { name: 'HLB', rate: '+5.00%' },
-        { name: '알테오젠', rate: '-3.80%' },
-        { name: '금호석유', rate: '+0.10%' },
-        { name: 'LG전자', rate: '-0.30%' },
-        { name: '포스코DX', rate: '+4.20%' },
-        { name: '두산에너빌리티', rate: '-1.90%' },
-        { name: '삼성바이오로직스', rate: '+0.95%' },
-        { name: 'SK이노베이션', rate: '-0.40%' },
-        { name: '크래프톤', rate: '+2.70%' },
-        { name: 'HMM', rate: '+1.80%' },
-        { name: '대한항공', rate: '+0.05%' },
-        { name: 'KT&G', rate: '-0.65%' },
-        { name: 'CJ ENM', rate: '-1.15%' },
-        { name: '엔씨소프트', rate: '+3.50%' },
-        { name: '하나금융지주', rate: '+0.25%' },
-    ];
+    const [marqueeStocks, setMarqueeStocks] = useState([]);
+
+    useEffect(() => {
+      const fetchMarqueeStocks = async () => {
+          try {
+              const response = await axios.get('http://localhost:8484/api/stocks/marketcap');
+              // ✅ 기존 스타일 유지용 데이터 구조 맞추기
+              const converted = response.data.map(stock => ({
+                  name: stock.stockName,
+                  rate: formatRate(stock.changeRate),
+                  code: stock.stockCode   // ✅ 종목코드 추가
+              }));
+
+              setMarqueeStocks(converted);
+          } catch (error) {
+              console.error("마퀴 데이터 로드 실패:", error);
+              setMarqueeStocks([]);
+          }
+      };
+
+      fetchMarqueeStocks();
+  }, []);
+
 
 
     // Marquee 콘텐츠 렌더링 함수
     const renderMarqueeContent = () => (
         <>
             {marqueeStocks.map((stock, index) => (
-                <StockPill key={index} rate={stock.rate}>
-                    <StockName>{stock.name}</StockName>
-                    {stock.rate}
-                </StockPill>
+                <Link
+                    key={index}
+                    to={`/stock/${stock.code}`}   // ✅ 클릭 시 이동
+                    style={{ textDecoration: 'none' }}
+                >
+                    <StockPill rate={stock.rate}>
+                        <StockName>{stock.name}</StockName>
+                        {stock.rate}
+                    </StockPill>
+                </Link>
             ))}
         </>
     );
+
+
 
     return (
         <HomePageContainer>
