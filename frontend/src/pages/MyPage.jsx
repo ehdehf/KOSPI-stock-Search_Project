@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 
 // ==========================================
-// 1. 스타일 객체 정의 (styled-components 대체)
+// 1. 스타일 객체 정의 (Inline Styles)
 // ==========================================
 const styles = {
   container: {
@@ -32,7 +32,6 @@ const styles = {
     marginBottom: '30px',
     borderBottom: '1px solid #ddd',
   },
-  // 탭 버튼 스타일 함수
   tabButton: (isActive) => ({
     padding: '12px 24px',
     cursor: 'pointer',
@@ -151,6 +150,10 @@ const styles = {
   },
 };
 
+// ==========================================
+// 2. 컴포넌트 로직
+// ==========================================
+
 function MyPage() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('INFO');
@@ -158,7 +161,7 @@ function MyPage() {
   const [favorites, setFavorites] = useState({ stocks: [], news: [] });
   
   const [isEditing, setIsEditing] = useState(false);
-  const [editForm, setEditForm] = useState({ fullName: '', password: '' });
+  const [editForm, setEditForm] = useState({ fullName: '' }); // 이름만 수정
 
   // 1. 데이터 불러오기 (실제 API 호출)
   useEffect(() => {
@@ -179,36 +182,57 @@ function MyPage() {
                 stocks: res.data.stocks || [], 
                 news: res.data.news || [] 
             });
-            setEditForm({ fullName: res.data.user.fullName, password: '' });
+            // 수정 폼 초기값 설정
+            setEditForm({ fullName: res.data.user.fullName });
         }
 
       } catch (error) {
         console.error("데이터 로드 실패", error);
         alert("정보를 불러올 수 없습니다. 다시 로그인해주세요.");
+        navigate('/');
       }
     };
     fetchData();
   }, [navigate]);
 
-  // 2. 정보 수정 핸들러
+  // 2. 정보 수정 핸들러 (이름 수정 + 로컬 스토리지 갱신)
   const handleUpdate = async () => {
-    if (!window.confirm("수정하시겠습니까?")) return;
+    if (!editForm.fullName.trim()) {
+        alert("이름을 입력해주세요.");
+        return;
+    }
+    
+    if (!window.confirm("정보를 수정하시겠습니까?")) return;
+    
     try {
+        // 백엔드 DB 업데이트
         await axios.put('/api/mypage/update', editForm);
+
+        // ⭐ [핵심 추가] 내 브라우저의 명찰(localStorage)도 새 이름으로 바꿔주기
+        const currentUser = JSON.parse(localStorage.getItem('user'));
+        const newUserInfo = { ...currentUser, fullName: editForm.fullName };
+        localStorage.setItem('user', JSON.stringify(newUserInfo));
+
         alert("정보가 수정되었습니다.");
         setIsEditing(false);
+        
+        // 화면 새로고침 (이제 Header가 바뀐 localStorage를 읽어올 겁니다)
         window.location.reload(); 
     } catch (e) {
+        console.error(e);
         alert("수정 실패");
     }
   };
 
   // 3. 회원 탈퇴 핸들러
   const handleWithdraw = async () => {
-    if (window.confirm("정말로 탈퇴하시겠습니까?")) {
+    if (window.confirm("정말로 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.")) {
         try {
             await axios.delete('/api/mypage/withdraw');
+            
+            // 로컬 스토리지 비우기
             localStorage.clear();
+            
             alert("탈퇴가 완료되었습니다.");
             navigate('/');
             window.location.reload();
@@ -272,14 +296,7 @@ function MyPage() {
                     <span style={styles.value}>{userInfo.fullName}</span>
                 )}
             </div>
-            {isEditing && (
-                <div style={styles.row}>
-                    <span style={styles.label}>새 비밀번호</span>
-                    <input type="password" style={styles.input} placeholder="변경시에만 입력"
-                        value={editForm.password}
-                        onChange={(e) => setEditForm({...editForm, password: e.target.value})} />
-                </div>
-            )}
+            
             <div style={styles.btnGroup}>
                 {isEditing ? (
                     <>
@@ -303,7 +320,6 @@ function MyPage() {
                 favorites.stocks.map((stock, idx) => (
                     <div key={idx} style={styles.listItem}>
                         <div>
-                            {/* StockLink 대신 Link 태그에 직접 스타일 적용 */}
                             <Link 
                                 to={`/stock/${stock.stockCode}`}
                                 style={styles.stockNameLink}

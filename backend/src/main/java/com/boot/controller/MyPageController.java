@@ -44,20 +44,27 @@ public class MyPageController {
         return ResponseEntity.ok(response);
     }
 
-    // 2. 정보 수정
     @PutMapping("/update")
     public ResponseEntity<?> updateInfo(@RequestBody Map<String, String> req, 
                                       @AuthenticationPrincipal UserDetails user) {
-        String fullName = req.get("fullName");
-        String password = req.get("password");
         
+        String email = user.getUsername();
+        String fullName = req.get("fullName");
+        String password = req.get("password"); // 프론트에서 빈 값("")으로 올 수 있음
+
+        // [디버깅 로그] 콘솔에서 이 값이 찍히는지 확인하세요!
+        System.out.println(">>> 회원 수정 요청: " + email);
+        System.out.println(">>> 변경할 이름: " + fullName);
+
         String encodedPw = null;
-        if (password != null && !password.isEmpty()) {
+        // 비밀번호가 입력되었을 때만 암호화 (입력 안 했으면 null 유지)
+        if (password != null && !password.trim().isEmpty()) {
             encodedPw = passwordEncoder.encode(password);
+            System.out.println(">>> 비밀번호도 변경함");
         }
 
-        // DAO에 updateUserInfo 호출 (매개변수 DTO 혹은 Map으로 전달)
-        // userDAO.updateUserInfo(user.getUsername(), fullName, encodedPw);
+        // DB 업데이트 호출
+        userDAO.updateUserInfo(email, fullName, encodedPw);
         
         return ResponseEntity.ok("정보가 수정되었습니다.");
     }
