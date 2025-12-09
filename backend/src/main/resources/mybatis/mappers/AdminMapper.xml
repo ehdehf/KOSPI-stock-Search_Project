@@ -3,17 +3,43 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.boot.dao.admin.AdminDAO">
+<mapper namespace="com.boot.dao.AdminDAO">
 
+	<resultMap id="userMap" type="com.boot.dto.UserInfoDTO">
+	    <result property="email" column="EMAIL"/>
+	    <result property="firstName" column="FIRST_NAME"/>
+	    <result property="lastName" column="LAST_NAME"/>
+	    <result property="fullName" column="FULL_NAME"/>
+	
+	    <result property="password" column="PASSWORD"/>
+	    <result property="provider" column="PROVIDER"/>
+	    <result property="role" column="ROLE"/>
+	
+	    <result property="createdAt" column="CREATED_AT"/>
+	    <result property="loginFailCount" column="LOGIN_FAIL_COUNT"/>
+	    <result property="lockUntil" column="LOCK_UNTIL"/>
+	    <result property="resetToken" column="RESET_TOKEN"/>
+	    <result property="tokenExpireAt" column="TOKEN_EXPIRE_AT"/>
+	    <result property="accountStatus" column="ACCOUNT_STATUS"/>
+	    <result property="suspendUntil" column="SUSPEND_UNTIL"/>
+	    <result property="refreshToken" column="REFRESH_TOKEN"/>
+	</resultMap>
     <!-- 전체 사용자 조회 -->
-    <select id="getUsers" resultType="map">
-        SELECT EMAIL, FULL_NAME, ROLE, CREATED_AT,
-               LOGIN_FAIL_COUNT, LOCK_UNTIL,
-               IS_SUSPENDED, SUSPEND_UNTIL,
-               ACCOUNT_STATUS, REFRESH_TOKEN
-        FROM USER_INFO
-        ORDER BY CREATED_AT DESC
-    </select>
+    <select id="getUsers" resultMap="userMap">
+	    SELECT 
+	        EMAIL,
+	        FULL_NAME,
+	        ROLE,
+	        PROVIDER,
+	        ACCOUNT_STATUS,
+	        IS_SUSPENDED,
+	        TO_CHAR(SUSPEND_UNTIL, 'YYYY-MM-DD HH24:MI:SS') AS SUSPEND_UNTIL,
+	        LOGIN_FAIL_COUNT,
+	        TO_CHAR(LOCK_UNTIL, 'YYYY-MM-DD HH24:MI:SS') AS LOCK_UNTIL,
+	        TO_CHAR(CREATED_AT, 'YYYY-MM-DD HH24:MI:SS') AS CREATED_AT
+	    FROM USER_INFO
+	    ORDER BY CREATED_AT DESC
+	</select>
 
     <!-- 정지 -->
     <update id="suspendUser">

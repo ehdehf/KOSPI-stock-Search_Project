@@ -3,6 +3,8 @@ package com.boot.dao;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import com.boot.dto.UserInfoDTO;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -10,7 +12,7 @@ import java.util.Map;
 @Mapper
 public interface AdminDAO {
 
-    List<Map<String,Object>> getUsers();
+    List<UserInfoDTO> getUsers();
 
     void suspendUser(@Param("email") String email,
                      @Param("until") LocalDateTime until);
