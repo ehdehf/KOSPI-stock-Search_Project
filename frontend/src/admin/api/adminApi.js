@@ -1,4 +1,4 @@
-import axiosInstance from "./axiosInstance";
+import axiosInstance from "./adminAxios";
 
 const adminApi = {
   getDashboard: () => axiosInstance.get("/admin/dashboard"),
