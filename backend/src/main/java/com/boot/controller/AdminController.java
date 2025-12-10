@@ -61,12 +61,12 @@ public class AdminController {
     public ResponseEntity<?> deleteUserToken(@RequestParam String email) {
         return adminService.deleteUserToken(email);
     }
-//
-//    // ✔ 전체 토큰 초기화
-//    @DeleteMapping("/tokens")
-//    public ResponseEntity<?> clearTokens() {
-//        return adminService.clearTokens();
-//    }
+    
+    // ✔ 전체 토큰 초기화
+    @DeleteMapping("/tokens/all")
+    public ResponseEntity<?> clearAllTokens() {
+        return adminService.clearAllTokens();
+    }
 //
 //    // ✔ 로그인 로그 조회
 //    @GetMapping("/logs/login")

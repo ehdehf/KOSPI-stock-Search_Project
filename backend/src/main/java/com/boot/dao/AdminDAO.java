@@ -40,7 +40,8 @@ public interface AdminDAO {
     // 특정 사용자 Refresh Token
     int deleteRefreshToken(String email);
     
-//    void clearTokens();
+    // 전체 Refresh Token 초기화
+    void clearAllTokens();
 //
 //    List<Map<String,Object>> getLoginLog();
 //

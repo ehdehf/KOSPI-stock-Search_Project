@@ -117,11 +117,12 @@
 	    WHERE EMAIL = #{email}
 	</update>
 
-<!--     전체 토큰 초기화 -->
-<!--    <update id="clearTokens">-->
-<!--        UPDATE USER_INFO-->
-<!--        SET REFRESH_TOKEN = NULL-->
-<!--    </update>-->
+	<!-- 전체 Refresh Token 초기화 -->
+    <update id="clearAllTokens">
+	    UPDATE USER_INFO
+	    SET REFRESH_TOKEN = NULL
+	    WHERE REFRESH_TOKEN IS NOT NULL
+	</update>
 
 <!--     로그인 로그 -->
 <!--    <select id="getLoginLog" resultType="map">-->
@@ -157,7 +158,7 @@
             CREATED_AT
         ) VALUES (
             #{adminEmail},
-            #{targetEmail},
+            #{targetEmail, jdbcType=VARCHAR},
             #{action},
             #{detail},
             SYSDATE

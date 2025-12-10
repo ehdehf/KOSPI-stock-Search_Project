@@ -188,12 +188,21 @@ public class AdminService {
 
         return ResponseEntity.ok("해당 사용자의 Refresh Token이 삭제되었습니다.");
     }
-//
-//    public ResponseEntity<?> clearTokens() {
-//        adminDAO.clearTokens();
-//        adminDAO.insertAdminLog("CLEAR_TOKEN_ALL", null, "전체 토큰 초기화");
-//        return ResponseEntity.ok("전체 초기화 완료");
-//    }
+
+    // 전체 Refresh Token 초기화
+    public ResponseEntity<?> clearAllTokens() {
+
+        adminDAO.clearAllTokens();
+
+        adminDAO.insertAdminLog(
+                "ADMIN",
+                null,
+                "CLEAR_TOKENS",
+                "전체 Refresh Token 초기화 (전체 사용자 즉시 로그아웃)"
+        );
+
+        return ResponseEntity.ok("전체 Refresh Token이 초기화되었습니다. 모든 사용자가 로그아웃됩니다.");
+    }
 //
 //    public ResponseEntity<?> getLoginLog() {
 //        return ResponseEntity.ok(adminDAO.getLoginLog());
