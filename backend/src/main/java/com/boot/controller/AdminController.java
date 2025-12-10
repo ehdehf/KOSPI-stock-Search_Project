@@ -55,12 +55,12 @@ public class AdminController {
     public ResponseEntity<?> getTokens() {
         return adminService.getTokens();
     }
-//
-//    // ✔ 특정 사용자 Refresh Token 삭제
-//    @DeleteMapping("/tokens/{email}")
-//    public ResponseEntity<?> deleteToken(@PathVariable String email) {
-//        return adminService.deleteToken(email);
-//    }
+    
+    // ✔ 특정 사용자 Refresh Token 삭제
+    @DeleteMapping("/tokens")
+    public ResponseEntity<?> deleteUserToken(@RequestParam String email) {
+        return adminService.deleteUserToken(email);
+    }
 //
 //    // ✔ 전체 토큰 초기화
 //    @DeleteMapping("/tokens")

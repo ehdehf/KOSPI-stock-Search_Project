@@ -36,7 +36,10 @@ public interface AdminDAO {
     
     //Refresh Token 전체 조회
     List<Map<String,Object>> getTokens();
-
+    
+    // 특정 사용자 Refresh Token
+    int deleteRefreshToken(String email);
+    
 //    void clearTokens();
 //
 //    List<Map<String,Object>> getLoginLog();

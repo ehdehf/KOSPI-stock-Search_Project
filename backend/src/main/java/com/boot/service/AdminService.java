@@ -165,12 +165,29 @@ public class AdminService {
     public ResponseEntity<?> getTokens() {
         return ResponseEntity.ok(adminDAO.getTokens());
     }
-//
-//    public ResponseEntity<?> deleteToken(String email) {
-//        adminDAO.forceLogout(email);
-//        adminDAO.insertAdminLog("DELETE_TOKEN", email, "토큰 삭제");
-//        return ResponseEntity.ok("토큰 삭제 완료");
-//    }
+    
+    // 특정 사용자 Refresh Token
+    public ResponseEntity<?> deleteUserToken(String email) {
+
+        // 존재하는 유저인지 먼저 확인
+        var user = adminDAO.findUserByEmail(email);
+        if (user == null) {
+            return ResponseEntity.status(404).body("해당 사용자를 찾을 수 없습니다.");
+        }
+
+        // DB 업데이트
+        adminDAO.deleteRefreshToken(email);
+
+        // 관리자 로그 기록
+        adminDAO.insertAdminLog(
+                "ADMIN",
+                email,
+                "TOKEN_DELETE",
+                "사용자의 Refresh Token 삭제(강제 로그아웃)"
+        );
+
+        return ResponseEntity.ok("해당 사용자의 Refresh Token이 삭제되었습니다.");
+    }
 //
 //    public ResponseEntity<?> clearTokens() {
 //        adminDAO.clearTokens();

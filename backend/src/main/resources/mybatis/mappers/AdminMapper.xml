@@ -110,6 +110,13 @@
 	    ORDER BY CREATED_AT DESC
     </select>
 
+	<!-- 특정 사용자 Refresh Token 삭제 -->
+	<update id="deleteRefreshToken">
+	    UPDATE USER_INFO
+	    SET REFRESH_TOKEN = NULL
+	    WHERE EMAIL = #{email}
+	</update>
+
 <!--     전체 토큰 초기화 -->
 <!--    <update id="clearTokens">-->
 <!--        UPDATE USER_INFO-->
