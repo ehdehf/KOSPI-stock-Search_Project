@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.boot.dao.LoginLogDAO">
+
+    <!-- 로그인 로그 저장 -->
+    <insert id="insertLog">
+        INSERT INTO LOGIN_LOG (
+            EMAIL,
+            STATUS,
+            IP_ADDRESS,
+            USER_AGENT,
+            CREATED_AT
+        ) VALUES (
+            #{email},
+            #{status},
+            #{ip},
+            #{userAgent},
+            SYSTIMESTAMP
+        )
+    </insert>
+
+    <!-- 로그인 로그 조회 -->
+    <select id="getLoginLog" resultType="map">
+        SELECT 
+            LOG_ID,
+            EMAIL,
+            STATUS,
+            IP_ADDRESS,
+            USER_AGENT,
+            TO_CHAR(CREATED_AT, 'YYYY-MM-DD HH24:MI:SS') AS CREATED_AT
+        FROM LOGIN_LOG
+        ORDER BY LOG_ID DESC
+    </select>
+
+</mapper>

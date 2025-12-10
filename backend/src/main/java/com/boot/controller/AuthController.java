@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import org.springframework.http.ResponseEntity;
@@ -32,10 +33,10 @@ public class AuthController {
 
     // 로그인 요청 처리
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody LoginRequestDTO req) {
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequestDTO req, HttpServletRequest request) {
 
         // 모든 로그인 로직은 서비스로 위임
-        return authService.login(req);
+        return authService.login(req, request);
     }
     // 이메일 인증 확인
     @PostMapping("/check-email")

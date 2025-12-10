@@ -1,6 +1,7 @@
 package com.boot.service;
 
 import com.boot.dao.AdminDAO;
+import com.boot.dao.LoginLogDAO;
 import com.boot.dto.ChangeRoleDTO;
 import com.boot.dto.SuspendRequestDTO;
 
@@ -17,6 +18,7 @@ import java.time.format.DateTimeFormatter;
 public class AdminService {
 
     private final AdminDAO adminDAO;
+    private final LoginLogDAO loginLogDAO;
     private final DateTimeFormatter formatter =
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     
@@ -220,7 +222,7 @@ public class AdminService {
     
     // 로그인 로그 조회
     public ResponseEntity<?> getLoginLog() {
-        return ResponseEntity.ok(adminDAO.getLoginLog());
+        return ResponseEntity.ok(loginLogDAO.getLoginLog());
     }
 
     // 관리자 로그 조회

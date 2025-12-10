@@ -1,5 +1,6 @@
 package com.boot.service;
 
+import com.boot.dao.LoginLogDAO;
 import com.boot.dao.UserDAO;
 import com.boot.dto.LoginRequestDTO;
 import com.boot.dto.LoginResponseDTO;
@@ -19,6 +20,9 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
+
+import javax.servlet.http.HttpServletRequest;
+
 import java.time.Duration;
 
 @Service
@@ -28,26 +32,31 @@ public class AuthService {
     private final MailService mailService;
 
     private final UserDAO userDAO;
+    private final LoginLogDAO loginLogDAO;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
-    
+    	
     // 최대 실패 횟수 및 잠금 시간(초)
     private final int MAX_FAIL = 5;
     private final int LOCK_TIME = 30;
 
     private static final DateTimeFormatter DT_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-    public ResponseEntity<?> login(LoginRequestDTO req) {
+    public ResponseEntity<?> login(LoginRequestDTO req, HttpServletRequest request) {
 
+    	String ip = request.getRemoteAddr();
+        String ua = request.getHeader("User-Agent");
         UserInfoDTO user = userDAO.findByEmail(req.getEmail());
 
         // 1) 이메일 존재 확인
         if (user == null) {
+        	loginLogDAO.insertLog(req.getEmail(), "FAIL", ip, ua);
             return ResponseEntity.status(401).body("❌ 존재하지 않는 이메일입니다.");
         }
 
         // 2) 이메일 인증 여부 체크
         if (!"ACTIVE".equals(user.getAccountStatus())) {
+        	loginLogDAO.insertLog(user.getEmail(), "FAIL", ip, ua);
             return ResponseEntity.status(403)
                     .body("❌ 이메일 인증이 완료되지 않은 계정입니다.");
         }
@@ -63,8 +72,10 @@ public class AuthService {
                 // 정지 기간이 지났다면 → 자동 해제
                 if (until.isBefore(LocalDateTime.now())) {
                     userDAO.clearSuspend(user.getEmail());
+                    loginLogDAO.insertLog(user.getEmail(), "AUTO_UNSUSPEND", ip, ua);
                 } 
                 else {
+                	loginLogDAO.insertLog(user.getEmail(), "SUSPENDED", ip, ua);
                     // 정지 기간이 아직 남아 있으면 로그인 차단
                     String message = "🚫 해당 계정은 정지되었습니다.\n";
 
@@ -77,6 +88,7 @@ public class AuthService {
                 }
             } else {
                 // 정지 해제 시간이 없는데 정지인 경우 → 무기한 정지
+            	loginLogDAO.insertLog(user.getEmail(), "SUSPENDED", ip, ua);
                 String message = "🚫 해당 계정은 무기한 정지되었습니다.\n";
 
                 if (user.getSuspendReason() != null)
@@ -90,6 +102,7 @@ public class AuthService {
         if (user.getLockUntil() != null) {
             LocalDateTime lockUntil = LocalDateTime.parse(user.getLockUntil(), DT_FORMAT);
             if (lockUntil.isAfter(LocalDateTime.now())) {
+            	loginLogDAO.insertLog(user.getEmail(), "LOCKED", ip, ua);
                 long remainSec =
                         Duration.between(LocalDateTime.now(), lockUntil).getSeconds();
 
@@ -105,6 +118,8 @@ public class AuthService {
             int newFailCount = (failCount == null ? 0 : failCount) + 1;
             userDAO.updateFailCount(user.getEmail(), newFailCount);
 
+            loginLogDAO.insertLog(user.getEmail(), "FAIL", ip, ua);
+            
             if (newFailCount >= MAX_FAIL) {
                 LocalDateTime lockTime = LocalDateTime.now().plusSeconds(LOCK_TIME);
                 userDAO.lockUser(user.getEmail(), lockTime.format(DT_FORMAT));
@@ -119,13 +134,16 @@ public class AuthService {
 
         // 6) 로그인 성공 → 실패 횟수 초기화
         userDAO.resetFailCount(user.getEmail());
-
-        // 7) 토큰 발급
+        
+        // 7) 로그인 성공 로그 기록
+        loginLogDAO.insertLog(user.getEmail(), "SUCCESS", ip, ua);
+        
+        // 8) 토큰 발급
         String accessToken = jwtProvider.createAccessToken(user.getEmail(), user.getRole());
         String refreshToken = jwtProvider.createRefreshToken(user.getEmail(), user.getRole());
         userDAO.updateRefreshToken(user.getEmail(), refreshToken);
 
-        // 8) 유저 정보 반환
+        // 9) 유저 정보 반환
         LoginUserInfoDTO userInfo = new LoginUserInfoDTO(
                 user.getEmail(),
                 user.getFullName(),
