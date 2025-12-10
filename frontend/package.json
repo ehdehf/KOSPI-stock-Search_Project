@@ -10,7 +10,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@ant-design/icons": "^6.1.0",
     "@stomp/stompjs": "^7.2.1",
+    "antd": "^6.1.0",
     "axios": "^1.13.2",
     "lucide-react": "^0.556.0",
     "react": "^19.2.0",

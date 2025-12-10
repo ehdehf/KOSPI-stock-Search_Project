@@ -31,6 +31,16 @@ import MobileApprovePage from './pages/MobileApprovePage';
 
 import StockTest from "./pages/StockTest";
 
+//관리자 부분 추가
+import AdminLayout from "./admin/layout/AdminLayout";
+import AdminRoute from "./routes/AdminRoute";
+import Dashboard from "./admin/pages/Dashboard";
+import Users from "./admin/pages/Users";
+import Tokens from "./admin/pages/Tokens";
+import LogsLogin from "./admin/pages/LogsLogin";
+import LogsAdmin from "./admin/pages/LogsAdmin";
+import Settings from "./admin/pages/Settings";
+
 function App() {
   return (
     <BrowserRouter>
@@ -60,6 +70,15 @@ function App() {
             <Route path="mobile-approve" element={<MobileApprovePage />} />
             <Route path="/stock/test/:code" element={<StockTest />} />
           </Route>
+          {/* 관리자 부분 추가 */}
+          <Route path="/admin" element={ <AdminRoute> <AdminLayout /> </AdminRoute> }>
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="users" element={<Users />} />
+            <Route path="tokens" element={<Tokens />} />
+            <Route path="logs/login" element={<LogsLogin />} />
+            <Route path="logs/admin" element={<LogsAdmin />} />
+            <Route path="settings" element={<Settings />} />
+        </Route>
         </Routes>
       </AuthProvider>
     </BrowserRouter>
