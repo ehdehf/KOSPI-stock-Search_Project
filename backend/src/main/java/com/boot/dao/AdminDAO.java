@@ -3,6 +3,10 @@ package com.boot.dao;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import com.boot.dto.DailyUserJoinDTO;
+import com.boot.dto.DashboardSummaryDTO;
+import com.boot.dto.LoginStatusStatDTO;
+import com.boot.dto.StockNewsTopDTO;
 import com.boot.dto.UserInfoDTO;
 
 import java.time.LocalDateTime;
@@ -48,9 +52,20 @@ public interface AdminDAO {
 
     // 관리자 로그 조회
     List<Map<String,Object>> getAdminLog();
-//
-//    Map<String,Object> getDashboard();
+    
+    // 대시보드 상단 카드 요약
+    DashboardSummaryDTO getDashboardSummary();
 
+    // 최근 N일 일별 가입자 수
+    List<DailyUserJoinDTO> getDailyJoins(@Param("days") int days);
+
+    // 최근 N일 로그인 STATUS 통계
+    List<LoginStatusStatDTO> getLoginStatusStats(@Param("days") int days);
+
+    // 최근 N일 뉴스 많이 나온 종목 TOP N
+    List<StockNewsTopDTO> getTopNewsStocks(@Param("days") int days,
+                                           @Param("limit") int limit);
+    
     void insertAdminLog(@Param("adminEmail") String adminEmail,
 			            @Param("targetEmail") String targetEmail,
 			            @Param("action") String action,

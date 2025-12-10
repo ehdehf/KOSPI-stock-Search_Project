@@ -79,10 +79,13 @@ public class AdminController {
     public ResponseEntity<?> getAdminLog() {
         return adminService.getAdminLog();
     }
-//
-//    // ✔ 관리자 대시보드 통계
-//    @GetMapping("/dashboard")
-//    public ResponseEntity<?> dashboard() {
-//        return adminService.dashboard();
-//    }
+    
+    // ✔ 관리자 대시보드 통계
+    @GetMapping("/dashboard")
+    public ResponseEntity<?> getDashboard(
+            @RequestParam(name = "days", defaultValue = "7") int days,
+            @RequestParam(name = "newsLimit", defaultValue = "5") int newsLimit
+    ) {
+        return adminService.getDashboard(days, newsLimit);
+    }
 }

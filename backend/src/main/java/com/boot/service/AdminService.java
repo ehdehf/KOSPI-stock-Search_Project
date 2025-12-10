@@ -2,7 +2,12 @@ package com.boot.service;
 
 import com.boot.dao.AdminDAO;
 import com.boot.dao.LoginLogDAO;
+import com.boot.dto.AdminDashboardDTO;
 import com.boot.dto.ChangeRoleDTO;
+import com.boot.dto.DailyUserJoinDTO;
+import com.boot.dto.DashboardSummaryDTO;
+import com.boot.dto.LoginStatusStatDTO;
+import com.boot.dto.StockNewsTopDTO;
 import com.boot.dto.SuspendRequestDTO;
 
 import lombok.RequiredArgsConstructor;
@@ -12,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -229,8 +235,21 @@ public class AdminService {
     public ResponseEntity<?> getAdminLog() {
         return ResponseEntity.ok(adminDAO.getAdminLog());
     }
-//
-//    public ResponseEntity<?> dashboard() {
-//        return ResponseEntity.ok(adminDAO.getDashboard());
-//    }
+
+    // 대시보드 메인 데이터 (days: 최근 N일 기준, newsLimit: top N 종목)
+    public ResponseEntity<?> getDashboard(int days, int newsLimit) {
+
+        DashboardSummaryDTO summary = adminDAO.getDashboardSummary();
+        List<DailyUserJoinDTO> dailyJoins = adminDAO.getDailyJoins(days);
+        List<LoginStatusStatDTO> loginStats = adminDAO.getLoginStatusStats(days);
+        List<StockNewsTopDTO> topNewsStocks = adminDAO.getTopNewsStocks(days, newsLimit);
+
+        AdminDashboardDTO dto = new AdminDashboardDTO();
+        dto.setSummary(summary);
+        dto.setDailyJoins(dailyJoins);
+        dto.setLoginStats(loginStats);
+        dto.setTopNewsStocks(topNewsStocks);
+
+        return ResponseEntity.ok(dto);
+    }
 }

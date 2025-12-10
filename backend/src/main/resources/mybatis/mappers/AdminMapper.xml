@@ -159,15 +159,66 @@
 	    ORDER BY LOG_ID DESC
 	</select>
 
-<!--     대시보드 -->
-<!--    <select id="getDashboard" resultType="map">-->
-<!--        SELECT-->
-<!--            (SELECT COUNT(*) FROM USER_INFO) AS total_users,-->
-<!--            (SELECT COUNT(*) FROM USER_INFO WHERE IS_SUSPENDED='Y') AS suspended_users,-->
-<!--            (SELECT COUNT(*) FROM USER_INFO WHERE ACCOUNT_STATUS='WAITING_VERIFY') AS waiting_email,-->
-<!--            (SELECT COUNT(*) FROM USER_INFO WHERE LOGIN_FAIL_COUNT > 3) AS danger_users-->
-<!--        FROM dual-->
-<!--    </select>-->
+	<!-- 대시보드 상단 요약 -->
+    <select id="getDashboardSummary"
+            resultType="com.boot.dto.DashboardSummaryDTO">
+        SELECT
+            (SELECT COUNT(*) FROM USER_INFO) AS totalUsers,
+            (SELECT COUNT(*) FROM USER_INFO WHERE ACCOUNT_STATUS = 'ACTIVE') AS activeUsers,
+            (SELECT COUNT(*) FROM USER_INFO WHERE IS_SUSPENDED = 'Y') AS suspendedUsers,
+            (SELECT COUNT(*) FROM USER_INFO WHERE ACCOUNT_STATUS = 'WAITING_VERIFY') AS waitingVerifyUsers,
+            (SELECT COUNT(*) FROM USER_INFO WHERE LOGIN_FAIL_COUNT >= 3) AS dangerUsers,
+            (SELECT COUNT(*) FROM STOCK_INFO) AS totalStocks,
+            (SELECT COUNT(*) FROM STOCK_NEWS) AS totalNews
+        FROM dual
+    </select>
+
+    <!-- 최근 N일 일별 가입자 수 -->
+    <select id="getDailyJoins"
+            parameterType="int"
+            resultType="com.boot.dto.DailyUserJoinDTO">
+        SELECT
+            TO_CHAR(CREATED_AT, 'YYYY-MM-DD') AS joinDate,
+            COUNT(*) AS count
+        FROM USER_INFO
+        WHERE CREATED_AT >= TRUNC(SYSDATE) - #{days}
+        GROUP BY TO_CHAR(CREATED_AT, 'YYYY-MM-DD')
+        ORDER BY joinDate
+    </select>
+
+    <!-- 최근 N일 로그인 STATUS 통계 -->
+    <select id="getLoginStatusStats"
+            parameterType="int"
+            resultType="com.boot.dto.LoginStatusStatDTO">
+        SELECT
+            STATUS AS status,
+            COUNT(*) AS count
+        FROM LOGIN_LOG
+        WHERE CREATED_AT >= TRUNC(SYSDATE) - #{days}
+        GROUP BY STATUS
+        ORDER BY STATUS
+    </select>
+
+    <!-- 최근 N일 뉴스 많은 종목 TOP N -->
+    <select id="getTopNewsStocks"
+            resultType="com.boot.dto.StockNewsTopDTO">
+        SELECT *
+		FROM (
+		    SELECT 
+		        n.STOCK_CODE AS stockCode,
+		        s.STOCK_NAME AS stockName,
+		        COUNT(*) AS newsCount
+		    FROM STOCK_NEWS n
+		    JOIN STOCK_INFO s 
+		        ON n.STOCK_CODE = s.STOCK_CODE
+		    WHERE n.NEWS_DATE >= TRUNC(SYSDATE) - 7
+		    GROUP BY n.STOCK_CODE, s.STOCK_NAME
+		    ORDER BY newsCount DESC
+		)
+		<![CDATA[
+		WHERE ROWNUM <= 5
+		]]>
+    </select>
 
     <!-- 관리자 로그 기록 -->
     <insert id="insertAdminLog">
