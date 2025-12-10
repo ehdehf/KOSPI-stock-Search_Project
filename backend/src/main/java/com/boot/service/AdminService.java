@@ -6,6 +6,7 @@ import com.boot.dto.SuspendRequestDTO;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -19,6 +20,12 @@ public class AdminService {
     private final DateTimeFormatter formatter =
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     
+    // 현재 로그인한 관리자 이메일 가져오기
+    private String getCurrentAdminEmail() {
+        return SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getName();
+    }
     //계정 조회
     public ResponseEntity<?> getUsers() {
         return ResponseEntity.ok(adminDAO.getUsers());
@@ -26,7 +33,8 @@ public class AdminService {
 
  // 1) 계정 정지
     public ResponseEntity<?> suspendUser(SuspendRequestDTO req) {
-
+    	
+    	String adminEmail = getCurrentAdminEmail();
         LocalDateTime until = LocalDateTime.now().plusDays(req.getDays());
 
         adminDAO.suspendUser(
@@ -36,7 +44,7 @@ public class AdminService {
         );
 
         adminDAO.insertAdminLog(
-                "ADMIN",
+        		adminEmail,  // 실제 관리자 이메일
                 req.getEmail(),
                 "SUSPEND",
                 "정지 " + req.getDays() + "일, 사유: " + req.getReason()
@@ -50,11 +58,12 @@ public class AdminService {
 
     // 2) 계정 정지 해제
     public ResponseEntity<?> unsuspendUser(String email) {
-
+    	
+    	String adminEmail = getCurrentAdminEmail();
         adminDAO.unsuspendUser(email);
 
         adminDAO.insertAdminLog(
-                "ADMIN",
+        		adminEmail,
                 email,
                 "UNSUSPEND",
                 "정지 해제"
@@ -65,6 +74,7 @@ public class AdminService {
 
     public ResponseEntity<?> changeUserRole(ChangeRoleDTO dto) {
     	
+    	String adminEmail = getCurrentAdminEmail();
     	String email = dto.getEmail();
         String newRole = dto.getNewRole();
         
@@ -104,7 +114,7 @@ public class AdminService {
 
         // 6) 관리자 로그 기록
         adminDAO.insertAdminLog(
-                "ADMIN",
+        		adminEmail,
                 email,
                 "ROLE_CHANGE",
                 "권한 변경: " + oldRole + " → " + newRole
@@ -115,7 +125,8 @@ public class AdminService {
 
     //로그인 횟수 초기화
     public ResponseEntity<?> resetLoginFail(String email) {
-
+    	
+    	String adminEmail = getCurrentAdminEmail();
         // 1) 사용자 존재 확인
         var user = adminDAO.findUserByEmail(email);
         if (user == null) {
@@ -128,7 +139,7 @@ public class AdminService {
 
         // 3) 관리자 로그 기록
         adminDAO.insertAdminLog(
-                "ADMIN",
+        		adminEmail,
                 email,
                 "RESET_FAIL",
                 "로그인 실패 횟수 초기화 + 계정 잠금 해제"
@@ -139,7 +150,8 @@ public class AdminService {
     
     //계정 강제 로그아웃
     public ResponseEntity<?> forceLogout(String email) {
-
+    	
+    	String adminEmail = getCurrentAdminEmail();
         // 1) 사용자 존재 확인
         var user = adminDAO.findUserByEmail(email);
         if (user == null) {
@@ -152,7 +164,7 @@ public class AdminService {
 
         // 3) 관리자 로그 기록
         adminDAO.insertAdminLog(
-                "ADMIN",
+        		adminEmail,
                 email,
                 "FORCE_LOGOUT",
                 "강제 로그아웃 수행"
@@ -168,7 +180,8 @@ public class AdminService {
     
     // 특정 사용자 Refresh Token
     public ResponseEntity<?> deleteUserToken(String email) {
-
+    	
+    	String adminEmail = getCurrentAdminEmail();
         // 존재하는 유저인지 먼저 확인
         var user = adminDAO.findUserByEmail(email);
         if (user == null) {
@@ -180,7 +193,7 @@ public class AdminService {
 
         // 관리자 로그 기록
         adminDAO.insertAdminLog(
-                "ADMIN",
+        		adminEmail,
                 email,
                 "TOKEN_DELETE",
                 "사용자의 Refresh Token 삭제(강제 로그아웃)"
@@ -191,11 +204,12 @@ public class AdminService {
 
     // 전체 Refresh Token 초기화
     public ResponseEntity<?> clearAllTokens() {
-
+    	
+    	String adminEmail = getCurrentAdminEmail();
         adminDAO.clearAllTokens();
 
         adminDAO.insertAdminLog(
-                "ADMIN",
+        		adminEmail,
                 null,
                 "CLEAR_TOKENS",
                 "전체 Refresh Token 초기화 (전체 사용자 즉시 로그아웃)"

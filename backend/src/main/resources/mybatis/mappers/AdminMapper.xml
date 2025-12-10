@@ -66,13 +66,22 @@
 	<select id="findUserByEmail" resultMap="userMap">
 	    SELECT 
 	        EMAIL,
+	        FIRST_NAME,
+	        LAST_NAME,
 	        FULL_NAME,
-	        ROLE,
-	        IS_SUSPENDED,
-	        SUSPEND_UNTIL,
-	        SUSPEND_REASON,
+	        PASSWORD,
 	        PROVIDER,
-	        ACCOUNT_STATUS
+	        ROLE,
+	        TO_CHAR(CREATED_AT, 'YYYY-MM-DD HH24:MI:SS') AS CREATED_AT,
+	        LOGIN_FAIL_COUNT,
+	        TO_CHAR(LOCK_UNTIL, 'YYYY-MM-DD HH24:MI:SS') AS LOCK_UNTIL,
+	        RESET_TOKEN,
+	        TO_CHAR(TOKEN_EXPIRE_AT, 'YYYY-MM-DD HH24:MI:SS') AS TOKEN_EXPIRE_AT,
+	        ACCOUNT_STATUS,
+	        IS_SUSPENDED,
+	        TO_CHAR(SUSPEND_UNTIL, 'YYYY-MM-DD HH24:MI:SS') AS SUSPEND_UNTIL,
+	        SUSPEND_REASON,
+	        REFRESH_TOKEN
 	    FROM USER_INFO
 	    WHERE EMAIL = #{email}
 	</select>
