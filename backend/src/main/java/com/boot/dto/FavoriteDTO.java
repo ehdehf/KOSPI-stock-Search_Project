@@ -20,4 +20,7 @@ public class FavoriteDTO {
     
     // 메모 필드
     private String memo;
+    
+//    업종 정보 필드
+    private String industry;
 }

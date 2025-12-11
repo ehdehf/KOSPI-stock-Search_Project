@@ -242,7 +242,8 @@
 	        S.STOCK_NAME, 
 	        S.PRICE, 
 	        S.CHANGE_RATE,
-	        F.MEMO
+	        F.MEMO,
+	        S.INDUSTRY
 	    FROM USER_FAVORITE_STOCK F
 	    JOIN STOCK_INFO S ON F.STOCK_CODE = S.STOCK_CODE
 	    WHERE F.EMAIL = #{email}
