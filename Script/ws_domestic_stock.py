@@ -109,7 +109,7 @@ def parse_and_forward_stock_payload(packed_str):
 # WebSocket Manager
 # ------------------------
 async def single_socket_manager():
-    g_approval_key = "2972d05a-68c2-4214-a8ca-0eefdeb9ac4f"
+    g_approval_key = "f55f732a-da86-41ae-9162-307671c9b2d6"
     custtype = "P"
     reconnect_backoff = 1
 
