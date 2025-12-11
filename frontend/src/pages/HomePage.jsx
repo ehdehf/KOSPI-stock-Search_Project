@@ -1,18 +1,12 @@
-// src/pages/HomePage.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import styled, { keyframes, css } from 'styled-components';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 
-// 🌟 차트 컴포넌트 import (KospiLineChart를 사용하기 위해 필요)
+// 🌟 차트 컴포넌트 import (요청하신 대로 원본 유지)
+// 이 파일들이 로컬 프로젝트의 해당 경로에 있어야 정상 작동합니다.
 import KosdaqLineChart from '../components/shared/KosdaqLineChart';
 import KospiLineChart from '../components/shared/KospiLineChart';
-
-
-// 🔴 경로: 상위 폴더(src)로 가서 components/shared로 접근
-// 실제 컴포넌트는 나중에 구현한다고 가정하고 빈 박스로 대체합니다.
-// import KospiIndexCard from '../components/shared/KospiIndexCard'; 
-// import NewsCard from '../components/shared/NewsCard'; 
 
 // --- 임시 컴포넌트 ---
 const KospiIndexCard = styled.div`
@@ -288,11 +282,13 @@ function HomePage() {
     // ✅ ✅ ✅ 최신 지수 불러오기
     useEffect(() => {
       const fetchLatestIndex = async () => {
-        const res = await axios.get('http://localhost:8484/api/chart/latest');
-        setIndexData({
-          kospi: res.data.kospi,
-          kosdaq: res.data.kosdaq,
-        });
+        try {
+            const res = await axios.get('http://localhost:8484/api/chart/latest');
+            setIndexData({
+            kospi: res.data.kospi,
+            kosdaq: res.data.kosdaq,
+            });
+        } catch(e) { console.error(e); }
       };
       fetchLatestIndex();
     }, []);
@@ -417,6 +413,85 @@ function HomePage() {
         </>
     );
 
+    // ============================================
+    // ⭐ [수정됨] 찜하기 기능 (DB 연동)
+    // ============================================
+    const [savedNewsIds, setSavedNewsIds] = useState([]);
+
+    // 1. 처음 로딩 시 찜 목록 가져오기
+    useEffect(() => {
+        const fetchBookmarks = async () => {
+            const token = localStorage.getItem('accessToken');
+            if (token) {
+                try {
+                    // 서버에서 찜한 목록(ID 리스트) 가져오기
+                    const res = await axios.get('/api/mypage/favorites/news', {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    
+                    let rawList = res.data;
+                    // 응답 구조 방어 코드
+                    if (!Array.isArray(rawList) && rawList.data) rawList = rawList.data;
+                    if (!Array.isArray(rawList) && rawList.list) rawList = rawList.list;
+                    
+                    if (Array.isArray(rawList)) {
+                        // 객체면 ID 추출, 숫자면 그대로, 문자열로 변환하여 저장
+                        const ids = rawList.map(item => {
+                            if (typeof item === 'object' && item !== null) {
+                                return String(item.newsId || item.id);
+                            }
+                            return String(item);
+                        }).filter(id => id);
+                        
+                        setSavedNewsIds(ids);
+                    }
+                } catch (e) {
+                    console.error("찜 목록 로딩 실패:", e);
+                }
+            }
+        };
+        fetchBookmarks();
+    }, []);
+
+    // 2. 찜하기/해제 핸들러 (DB 요청)
+    const handleToggleBookmark = async (news) => {
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+            alert("로그인이 필요한 기능입니다.");
+            return;
+        }
+
+        const newsId = news.newsId || news.id; // 뉴스 ID 식별
+        if (!newsId) {
+            alert("뉴스 ID가 없어 찜할 수 없습니다.");
+            return;
+        }
+
+        const strNewsId = String(newsId);
+        const isBookmarked = savedNewsIds.includes(strNewsId);
+
+        try {
+            if (isBookmarked) {
+                // 이미 찜 상태면 -> 삭제
+                await axios.delete(`/api/mypage/favorites/news/${newsId}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                setSavedNewsIds(prev => prev.filter(id => id !== strNewsId));
+                alert("스크랩을 취소했습니다.");
+            } else {
+                // 찜 아님 -> 추가
+                await axios.post('/api/mypage/favorites/news', 
+                    { newsId: newsId }, 
+                    { headers: { Authorization: `Bearer ${token}` } }
+                );
+                setSavedNewsIds(prev => [...prev, strNewsId]);
+                alert("뉴스를 스크랩했습니다.");
+            }
+        } catch (error) {
+            console.error("뉴스 찜 오류:", error);
+            alert("처리 중 오류가 발생했습니다.");
+        }
+    };
 
 
     return (
@@ -571,41 +646,74 @@ function HomePage() {
 
                 {/* 뉴스 리스트 (선택된 키워드에 따라) */}
                 <NewsGrid>
-    {newsList.length === 0 ? (
-      <div style={{
-        gridColumn: "1 / -1",
-        textAlign: "center",
-        padding: "40px 0",
-        color: "#888",
-        fontSize: "1rem"
-      }}>
-        📭 해당 산업의 뉴스가 없습니다.
-      </div>
-    ) : (
-      newsList.map((news, index) => (
-        <NewsCard key={index}>
-          <h4 style={{ color: '#1e3a8a', marginBottom: '5px' }}>
-            {news.title}
-          </h4>
-          <p>{news.content}</p>
+                    {newsList.length === 0 ? (
+                      <div style={{
+                        gridColumn: "1 / -1",
+                        textAlign: "center",
+                        padding: "40px 0",
+                        color: "#888",
+                        fontSize: "1rem"
+                      }}>
+                        📭 해당 산업의 뉴스가 없습니다.
+                      </div>
+                    ) : (
+                      newsList.map((news, index) => {
+                        const newsId = news.newsId || news.id;
+                        // ⭐ 찜 여부 체크
+                        const isBookmarked = savedNewsIds.includes(String(newsId));
 
-          <a
-            href={news.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              fontSize: '0.8rem',
-              color: '#6366f1',
-              marginTop: '10px',
-              display: 'block',
-            }}
-          >
-            원문 보기
-          </a>
-        </NewsCard>
-      ))
-    )}
-  </NewsGrid>
+                        return (
+                            <NewsCard key={index}>
+                              <h4 style={{ color: '#1e3a8a', marginBottom: '5px' }}>
+                                {news.title}
+                              </h4>
+                              <p>{news.content}</p>
+
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px' }}>
+                                  <a
+                                    href={news.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{
+                                      fontSize: '0.8rem',
+                                      color: '#6366f1',
+                                      textDecoration: 'none'
+                                    }}
+                                  >
+                                    원문 보기 &gt;
+                                  </a>
+
+                                  {/* ⭐ DB 연동된 별표 버튼 */}
+                                  <button 
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        handleToggleBookmark(news); 
+                                    }}
+                                    style={{ 
+                                        background: 'none', 
+                                        border: 'none', 
+                                        cursor: 'pointer',
+                                        padding: '5px'
+                                    }}
+                                    title={isBookmarked ? "찜 해제" : "찜하기"}
+                                  >
+                                    <svg 
+                                        width="24" 
+                                        height="24" 
+                                        viewBox="0 0 24 24" 
+                                        fill={isBookmarked ? "#FFD700" : "none"} 
+                                        stroke={isBookmarked ? "#FFD700" : "#ccc"} 
+                                        strokeWidth="2"
+                                    >
+                                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                                    </svg>
+                                  </button>
+                              </div>
+                            </NewsCard>
+                        );
+                      })
+                    )}
+                </NewsGrid>
 
             </NewsSection>
         </HomePageContainer>
