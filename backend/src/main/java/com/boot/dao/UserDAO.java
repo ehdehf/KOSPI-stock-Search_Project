@@ -101,4 +101,13 @@ public interface UserDAO {
     void clearSuspend(String email);
     
     void markNewsAsRead(@Param("email") String email, @Param("newsId") Long newsId);
+    
+    // ⭐ [추가] 메모 업데이트 메서드
+    void updateStockMemo(@Param("email") String email, 
+                         @Param("stockCode") String stockCode, 
+                         @Param("memo") String memo);
+
+    void updateNewsMemo(@Param("email") String email, 
+                        @Param("newsId") Long newsId, 
+                        @Param("memo") String memo);
 }

@@ -136,4 +136,36 @@ public class MyPageController {
             return ResponseEntity.badRequest().body("오류 발생");
         }
     }
+    
+    @PostMapping("/favorites/stock/memo")
+    public ResponseEntity<?> updateStockMemo(@RequestBody Map<String, String> req, 
+                                             @AuthenticationPrincipal UserDetails user) {
+        try {
+            userDAO.updateStockMemo(
+                user.getUsername(), 
+                req.get("stockCode"), 
+                req.get("memo")
+            );
+            return ResponseEntity.ok("종목 메모가 저장되었습니다.");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body("메모 저장 실패");
+        }
+    }
+
+    @PostMapping("/favorites/news/memo")
+    public ResponseEntity<?> updateNewsMemo(@RequestBody Map<String, Object> req, 
+                                            @AuthenticationPrincipal UserDetails user) {
+        try {
+            // newsId는 JSON에서 숫자로 넘어오므로 형변환에 주의해야 합니다.
+            Long newsId = Long.valueOf(String.valueOf(req.get("newsId")));
+            String memo = (String) req.get("memo");
+
+            userDAO.updateNewsMemo(user.getUsername(), newsId, memo);
+            return ResponseEntity.ok("뉴스 메모가 저장되었습니다.");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body("메모 저장 실패");
+        }
+    }
 }

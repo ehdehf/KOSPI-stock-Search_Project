@@ -241,7 +241,8 @@
 	        F.STOCK_CODE, 
 	        S.STOCK_NAME, 
 	        S.PRICE, 
-	        S.CHANGE_RATE
+	        S.CHANGE_RATE,
+	        F.MEMO
 	    FROM USER_FAVORITE_STOCK F
 	    JOIN STOCK_INFO S ON F.STOCK_CODE = S.STOCK_CODE
 	    WHERE F.EMAIL = #{email}
@@ -255,7 +256,8 @@
 	        N.TITLE AS newsTitle, 
 	        N.URL AS newsUrl, 
 	        TO_CHAR(N.NEWS_DATE, 'YYYY-MM-DD') AS newsDate,
-	        F.IS_READ
+	        F.IS_READ AS isRead,
+	        F.MEMO as memo
 	    FROM USER_FAVORITE_NEWS F
 	    JOIN STOCK_NEWS N ON F.NEWS_ID = N.NEWS_ID
 	    WHERE F.EMAIL = #{email}
@@ -313,4 +315,20 @@
     WHERE EMAIL = #{email} 
       AND NEWS_ID = #{newsId}
 	</update>
+	
+	<!-- ======================= -->
+    	 <!--    메모 저장   -->
+    <!-- ======================= -->
+
+    <update id="updateStockMemo">
+        UPDATE USER_FAVORITE_STOCK
+        SET MEMO = #{memo}
+        WHERE EMAIL = #{email} AND STOCK_CODE = #{stockCode}
+    </update>
+
+    <update id="updateNewsMemo">
+        UPDATE USER_FAVORITE_NEWS
+        SET MEMO = #{memo}
+        WHERE EMAIL = #{email} AND NEWS_ID = #{newsId}
+    </update>
 </mapper>

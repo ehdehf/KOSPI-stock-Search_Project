@@ -17,4 +17,7 @@ public class FavoriteDTO {
     private String newsDate;
     
     private String isRead; // 'Y' 또는 'N' 값을 담을 필드 추가
+    
+    // 메모 필드
+    private String memo;
 }
