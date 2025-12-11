@@ -1,12 +1,12 @@
 import React from "react";
-import { Layout, Dropdown, Menu } from "antd";
-import { UserOutlined, LogoutOutlined } from "@ant-design/icons";
+import { Layout } from "antd";
+import { Outlet } from "react-router-dom";   // ✔ 추가
 import SidebarMenu from "./SidebarMenu";
 import HeaderBar from "./HeaderBar";
 
 const { Sider, Header, Content } = Layout;
 
-export default function AdminLayout({ children }) {
+export default function AdminLayout() {
   return (
     <Layout style={{ minHeight: "100vh" }}>
       
@@ -55,7 +55,7 @@ export default function AdminLayout({ children }) {
               boxShadow: "0 2px 8px rgba(0,0,0,0.05)"
             }}
           >
-            {children}
+            <Outlet />  {/* ← 이것이 핵심!! */}
           </div>
         </Content>
       </Layout>

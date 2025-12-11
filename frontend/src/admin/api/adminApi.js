@@ -1,7 +1,9 @@
-import axiosInstance from "./axiosInstance";
+import axiosInstance from "./adminAxios";
 
 const adminApi = {
-  getDashboard: () => axiosInstance.get("/admin/dashboard"),
+ getDashboard(days = 7, newsLimit = 5) {
+    return axiosInstance.get(`/admin/dashboard?days=${days}&newsLimit=${newsLimit}`);
+  },
   getUsers: () => axiosInstance.get("/admin/users"),
   getTokens: () => axiosInstance.get("/admin/tokens"),
   getLoginLog: () => axiosInstance.get("/admin/logs/login"),
