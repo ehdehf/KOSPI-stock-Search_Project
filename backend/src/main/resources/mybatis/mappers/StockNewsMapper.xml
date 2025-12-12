@@ -1,25 +1,21 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE mapper
-  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-
 <mapper namespace="com.boot.dao.StockNewsDAO">
 
-    <!-- ============================= -->
-    <!-- 종목별 뉴스 -->
-    <!-- ============================= -->
-    <select id="getNewsByStock" parameterType="string"
-            resultType="com.boot.dto.StockNewsDTO">
+    <!-- 종목별 뉴스 리스트 -->
+    <select id="getNewsByStock" parameterType="string" resultType="com.boot.dto.StockNewsDTO">
         SELECT NEWS_ID, STOCK_CODE, TITLE, CONTENT, URL,
-               NEWS_DATE, CREATED_AT, SENTIMENT, SCORE, KEYWORDS, UPDATED_AT
+               TO_CHAR(NEWS_DATE, 'YYYY-MM-DD HH24:MI:SS') AS NEWS_DATE,
+               TO_CHAR(CREATED_AT, 'YYYY-MM-DD HH24:MI:SS') AS CREATED_AT,
+        	   SENTIMENT, SCORE, KEYWORDS,
+        	   TO_CHAR(UPDATED_AT, 'YYYY-MM-DD HH24:MI:SS') AS UPDATED_AT
         FROM STOCK_NEWS
         WHERE STOCK_CODE = #{stockCode}
         ORDER BY NEWS_DATE DESC
     </select>
 
-    <!-- ============================= -->
     <!-- 감성 요약 -->
-    <!-- ============================= -->
     <select id="getSentimentSummary" parameterType="string" resultType="map">
         SELECT
             SUM(CASE WHEN SENTIMENT = '긍정' THEN 1 ELSE 0 END) AS positiveCount,
@@ -29,33 +25,34 @@
         WHERE STOCK_CODE = #{stockCode}
     </select>
 
-    <!-- ============================= -->
-    <!-- 종목별 감성 통계 -->
-    <!-- ============================= -->
+    <!-- 종목별 감성 통계 (상세) -->
     <select id="getSentimentSummaryByStock" parameterType="string" resultType="map">
-        SELECT
+        SELECT 
             STOCK_CODE,
             COUNT(*) AS totalNews,
-            SUM(CASE WHEN SENTIMENT='긍정' THEN 1 ELSE 0 END) AS positiveCount,
-            SUM(CASE WHEN SENTIMENT='부정' THEN 1 ELSE 0 END) AS negativeCount,
-            SUM(CASE WHEN SENTIMENT='보통' THEN 1 ELSE 0 END) AS neutralCount,
-            ROUND(SUM(CASE WHEN SENTIMENT='긍정' THEN 1 ELSE 0 END)*100/COUNT(*),2) AS positiveRatio,
-            ROUND(SUM(CASE WHEN SENTIMENT='부정' THEN 1 ELSE 0 END)*100/COUNT(*),2) AS negativeRatio
+            SUM(CASE WHEN SENTIMENT = '긍정' THEN 1 ELSE 0 END) AS positiveCount,
+            SUM(CASE WHEN SENTIMENT = '부정' THEN 1 ELSE 0 END) AS negativeCount,
+            SUM(CASE WHEN SENTIMENT = '보통' THEN 1 ELSE 0 END) AS neutralCount,
+            ROUND(SUM(CASE WHEN SENTIMENT = '긍정' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2) AS positiveRatio,
+            ROUND(SUM(CASE WHEN SENTIMENT = '부정' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2) AS negativeRatio,
+            ROUND(AVG(SCORE), 2) AS avgScore
         FROM STOCK_NEWS
         WHERE STOCK_CODE = #{stockCode}
           AND SENTIMENT IS NOT NULL
         GROUP BY STOCK_CODE
     </select>
 
+    <!-- 종목별 감성 통계 (기간 필터링) -->
     <select id="getSentimentSummaryByStockWithPeriod" resultType="map">
-        SELECT
+        SELECT 
             STOCK_CODE,
             COUNT(*) AS totalNews,
-            SUM(CASE WHEN SENTIMENT='긍정' THEN 1 ELSE 0 END) AS positiveCount,
-            SUM(CASE WHEN SENTIMENT='부정' THEN 1 ELSE 0 END) AS negativeCount,
-            SUM(CASE WHEN SENTIMENT='보통' THEN 1 ELSE 0 END) AS neutralCount,
-            ROUND(SUM(CASE WHEN SENTIMENT='긍정' THEN 1 ELSE 0 END)*100/COUNT(*),2) AS positiveRatio,
-            ROUND(SUM(CASE WHEN SENTIMENT='부정' THEN 1 ELSE 0 END)*100/COUNT(*),2) AS negativeRatio
+            SUM(CASE WHEN SENTIMENT = '긍정' THEN 1 ELSE 0 END) AS positiveCount,
+            SUM(CASE WHEN SENTIMENT = '부정' THEN 1 ELSE 0 END) AS negativeCount,
+            SUM(CASE WHEN SENTIMENT = '보통' THEN 1 ELSE 0 END) AS neutralCount,
+            ROUND(SUM(CASE WHEN SENTIMENT = '긍정' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2) AS positiveRatio,
+            ROUND(SUM(CASE WHEN SENTIMENT = '부정' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2) AS negativeRatio,
+            ROUND(AVG(SCORE), 2) AS avgScore
         FROM STOCK_NEWS
         WHERE STOCK_CODE = #{stockCode}
           AND SENTIMENT IS NOT NULL
@@ -63,94 +60,146 @@
         GROUP BY STOCK_CODE
     </select>
 
-    <!-- ============================= -->
-    <!-- 🔥 대시보드 핵심 (STOCK_NAME 포함) -->
-    <!-- ============================= -->
+    <!-- 전체 종목별 감성 통계 (대시보드용) -->
     <select id="getAllStockSentimentSummary" resultType="map">
-        SELECT
-            sn.STOCK_CODE,
-            si.STOCK_NAME,
+        SELECT 
+            STOCK_CODE,
             COUNT(*) AS totalNews,
-            ROUND(SUM(CASE WHEN sn.SENTIMENT='긍정' THEN 1 ELSE 0 END)*100/COUNT(*),2) AS positiveRatio,
-            ROUND(SUM(CASE WHEN sn.SENTIMENT='부정' THEN 1 ELSE 0 END)*100/COUNT(*),2) AS negativeRatio
-        FROM STOCK_NEWS sn
-        LEFT JOIN STOCK_INFO si ON sn.STOCK_CODE = si.STOCK_CODE
-        WHERE sn.SENTIMENT IS NOT NULL
-        GROUP BY sn.STOCK_CODE, si.STOCK_NAME
+            SUM(CASE WHEN SENTIMENT = '긍정' THEN 1 ELSE 0 END) AS positiveCount,
+            SUM(CASE WHEN SENTIMENT = '부정' THEN 1 ELSE 0 END) AS negativeCount,
+            SUM(CASE WHEN SENTIMENT = '보통' THEN 1 ELSE 0 END) AS neutralCount,
+            ROUND(SUM(CASE WHEN SENTIMENT = '긍정' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2) AS positiveRatio,
+            ROUND(SUM(CASE WHEN SENTIMENT = '부정' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2) AS negativeRatio,
+            ROUND(AVG(SCORE), 2) AS avgScore
+        FROM STOCK_NEWS
+        WHERE SENTIMENT IS NOT NULL
+          AND STOCK_CODE IS NOT NULL
+        GROUP BY STOCK_CODE
         ORDER BY totalNews DESC
     </select>
 
+    <!-- 전체 종목별 감성 통계 (기간 필터링) -->
     <select id="getAllStockSentimentSummaryWithPeriod" resultType="map">
-        SELECT
-            sn.STOCK_CODE,
-            si.STOCK_NAME,
+        SELECT 
+            STOCK_CODE,
             COUNT(*) AS totalNews,
-            ROUND(SUM(CASE WHEN sn.SENTIMENT='긍정' THEN 1 ELSE 0 END)*100/COUNT(*),2) AS positiveRatio,
-            ROUND(SUM(CASE WHEN sn.SENTIMENT='부정' THEN 1 ELSE 0 END)*100/COUNT(*),2) AS negativeRatio
-        FROM STOCK_NEWS sn
-        LEFT JOIN STOCK_INFO si ON sn.STOCK_CODE = si.STOCK_CODE
-        WHERE sn.SENTIMENT IS NOT NULL
-          AND sn.NEWS_DATE >= SYSDATE - TO_NUMBER(#{days})
-        GROUP BY sn.STOCK_CODE, si.STOCK_NAME
+            SUM(CASE WHEN SENTIMENT = '긍정' THEN 1 ELSE 0 END) AS positiveCount,
+            SUM(CASE WHEN SENTIMENT = '부정' THEN 1 ELSE 0 END) AS negativeCount,
+            SUM(CASE WHEN SENTIMENT = '보통' THEN 1 ELSE 0 END) AS neutralCount,
+            ROUND(SUM(CASE WHEN SENTIMENT = '긍정' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2) AS positiveRatio,
+            ROUND(SUM(CASE WHEN SENTIMENT = '부정' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2) AS negativeRatio,
+            ROUND(AVG(SCORE), 2) AS avgScore
+        FROM STOCK_NEWS
+        WHERE SENTIMENT IS NOT NULL
+          AND STOCK_CODE IS NOT NULL
+          AND NEWS_DATE >= SYSDATE - #{days}
+        GROUP BY STOCK_CODE
         ORDER BY totalNews DESC
     </select>
 
-    <!-- ============================= -->
-    <!-- 🔥 Top10 (HomePage 마퀴용) -->
-    <!-- ============================= -->
-    <select id="getTop10PopularStocks" resultType="map">
-        <![CDATA[
-        SELECT *
-        FROM (
-            SELECT
-                n.STOCK_CODE,
-                i.STOCK_NAME,
-                COUNT(*) AS ARTICLE_COUNT
-            FROM STOCK_NEWS n
-            JOIN STOCK_INFO i ON n.STOCK_CODE = i.STOCK_CODE
-            GROUP BY n.STOCK_CODE, i.STOCK_NAME
-            ORDER BY COUNT(*) DESC
-        )
-        WHERE ROWNUM <= 10
-        ]]>
+    <!-- 종목별 날짜별 감성 통계 (트렌드) -->
+    <select id="getSentimentTrendByStock" resultType="map">
+        SELECT 
+            TO_CHAR(NEWS_DATE, 'YYYY-MM-DD') AS newsDate,
+            COUNT(*) AS totalNews,
+            SUM(CASE WHEN SENTIMENT = '긍정' THEN 1 ELSE 0 END) AS positiveCount,
+            SUM(CASE WHEN SENTIMENT = '부정' THEN 1 ELSE 0 END) AS negativeCount,
+            SUM(CASE WHEN SENTIMENT = '보통' THEN 1 ELSE 0 END) AS neutralCount,
+            ROUND(AVG(SCORE), 2) AS avgScore
+        FROM STOCK_NEWS
+        WHERE STOCK_CODE = #{stockCode}
+          AND SENTIMENT IS NOT NULL
+          AND NEWS_DATE >= SYSDATE - #{days}
+        GROUP BY TO_CHAR(NEWS_DATE, 'YYYY-MM-DD')
+        ORDER BY newsDate DESC
     </select>
 
-    <!-- ============================= -->
-    <!-- 팀원 기능 (산업 / 키워드) -->
-    <!-- ============================= -->
-    <select id="getIndustries" resultType="string">
-        SELECT DISTINCT INDUSTRY
-        FROM STOCK_INDUSTRY
-        ORDER BY INDUSTRY
+    <!-- 키워드 TOP 10 (특정 종목) - KEYWORDS만 조회 -->
+    <select id="getTopKeywordsByStock" parameterType="string" resultType="map">
+        SELECT KEYWORDS
+        FROM STOCK_NEWS
+        WHERE STOCK_CODE = #{stockCode}
+          AND KEYWORDS IS NOT NULL
+          AND LENGTH(TRIM(KEYWORDS)) > 0
     </select>
 
-    <select id="getNewsByIndustry" resultType="com.boot.dto.StockNewsDTO">
-        SELECT n.*
-        FROM STOCK_NEWS n
-        JOIN STOCK_INDUSTRY i ON n.STOCK_CODE = i.STOCK_CODE
-        WHERE i.INDUSTRY = #{industry}
-        ORDER BY n.NEWS_DATE DESC
+    <!-- 전체 키워드 TOP 20 (트렌드) - KEYWORDS만 조회 -->
+    <select id="getTopKeywordsAll" resultType="map">
+        SELECT KEYWORDS
+        FROM STOCK_NEWS
+        WHERE KEYWORDS IS NOT NULL
+          AND LENGTH(TRIM(KEYWORDS)) > 0
+          AND NEWS_DATE >= SYSDATE - #{days}
     </select>
 
+    <!-- 전체 감성 통계 -->
+    <select id="getOverallSentimentSummary" resultType="map">
+        SELECT 
+            COUNT(*) AS totalNews,
+            SUM(CASE WHEN SENTIMENT = '긍정' THEN 1 ELSE 0 END) AS positiveCount,
+            SUM(CASE WHEN SENTIMENT = '부정' THEN 1 ELSE 0 END) AS negativeCount,
+            SUM(CASE WHEN SENTIMENT = '보통' THEN 1 ELSE 0 END) AS neutralCount,
+            ROUND(SUM(CASE WHEN SENTIMENT = '긍정' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2) AS positiveRatio,
+            ROUND(SUM(CASE WHEN SENTIMENT = '부정' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2) AS negativeRatio,
+            ROUND(SUM(CASE WHEN SENTIMENT = '보통' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2) AS neutralRatio,
+            ROUND(AVG(SCORE), 2) AS avgScore
+        FROM STOCK_NEWS
+        WHERE SENTIMENT IS NOT NULL
+    </select>
+    
+    <!-- ✅ 산업 목록 조회 -->
+	<select id="getIndustries" resultType="string">
+	    SELECT DISTINCT INDUSTRY
+	    FROM STOCK_INDUSTRY
+	    ORDER BY INDUSTRY
+	</select>
+	
+	<!-- ✅ 산업별 뉴스 조회 -->
+	<select id="getNewsByIndustry" resultType="com.boot.dto.StockNewsDTO">
+	    SELECT n.NEWS_ID, n.STOCK_CODE, n.TITLE, n.CONTENT, n.URL,
+	           TO_CHAR(n.NEWS_DATE, 'YYYY-MM-DD HH24:MI:SS') AS NEWS_DATE,
+	           TO_CHAR(n.CREATED_AT, 'YYYY-MM-DD HH24:MI:SS') AS CREATED_AT,
+	           n.SENTIMENT, n.SCORE, n.KEYWORDS,
+	           TO_CHAR(n.UPDATED_AT, 'YYYY-MM-DD HH24:MI:SS') AS UPDATED_AT
+	    FROM STOCK_NEWS n
+	    JOIN STOCK_INDUSTRY i
+	      ON n.STOCK_CODE = i.STOCK_CODE
+	    WHERE i.INDUSTRY = #{industry}
+	    ORDER BY n.NEWS_DATE DESC
+	</select>
+
+    <!-- ✅ 키워드별 뉴스 조회 -->
     <select id="getNewsByKeyword" resultType="com.boot.dto.StockNewsDTO">
-        SELECT *
+        SELECT NEWS_ID, STOCK_CODE, TITLE, CONTENT, URL,
+               TO_CHAR(NEWS_DATE, 'YYYY-MM-DD HH24:MI:SS') AS NEWS_DATE,
+               TO_CHAR(CREATED_AT, 'YYYY-MM-DD HH24:MI:SS') AS CREATED_AT,
+               SENTIMENT, SCORE, KEYWORDS,
+               TO_CHAR(UPDATED_AT, 'YYYY-MM-DD HH24:MI:SS') AS UPDATED_AT
         FROM STOCK_NEWS
         WHERE KEYWORDS IS NOT NULL
           AND UPPER(KEYWORDS) LIKE '%' || UPPER(#{keyword}) || '%'
         ORDER BY NEWS_DATE DESC
     </select>
 
+    <!-- ✅ 키워드별 종목 조회 (중복 제거, 뉴스 개수 포함) -->
     <select id="getStocksByKeyword" resultType="map">
-        SELECT
+        SELECT 
             s.STOCK_CODE,
             s.STOCK_NAME,
+            s.MARKET_TYPE,
+            s.INDUSTRY,
+            s.PRICE,
+            s.PRICE_CHANGE,
+            s.CHANGE_RATE,
+            s.MARKET_CAP,
             COUNT(n.NEWS_ID) AS newsCount
         FROM STOCK_INFO s
-        JOIN STOCK_NEWS n ON s.STOCK_CODE = n.STOCK_CODE
+        INNER JOIN STOCK_NEWS n ON s.STOCK_CODE = n.STOCK_CODE
         WHERE n.KEYWORDS IS NOT NULL
           AND UPPER(n.KEYWORDS) LIKE '%' || UPPER(#{keyword}) || '%'
-        GROUP BY s.STOCK_CODE, s.STOCK_NAME
-        ORDER BY newsCount DESC
+        GROUP BY s.STOCK_CODE, s.STOCK_NAME, s.MARKET_TYPE, s.INDUSTRY, 
+                 s.PRICE, s.PRICE_CHANGE, s.CHANGE_RATE, s.MARKET_CAP
+        ORDER BY newsCount DESC, s.STOCK_NAME
     </select>
 
 </mapper>
