@@ -8,6 +8,8 @@ import {
   List,
   Tag,
   Space,
+  Modal,   // ✅ 추가
+  Table,   // ✅ 추가
 } from "antd";
 
 import { Line, Pie, Bar } from "@ant-design/plots";
@@ -28,6 +30,11 @@ import adminApi from "../api/adminApi";
 export default function Dashboard() {
   const [data, setData] = useState(null);
   const [adminLogs, setAdminLogs] = useState([]);
+
+  // ✅ (추가) 보안 계정 조회 모달 상태
+  const [securityModalOpen, setSecurityModalOpen] = useState(false);
+  const [securityModalTitle, setSecurityModalTitle] = useState("");
+  const [securityAccounts, setSecurityAccounts] = useState([]);
 
   // ---------------------------------------------------------
   // 데이터 로드
@@ -58,6 +65,37 @@ export default function Dashboard() {
     topNewsStocks = [],
     securityStats = {}, // 🔥 보안 통계 데이터
   } = data;
+
+  // ✅ (추가) 보안 카드 클릭 → 계정 리스트 조회 후 모달 오픈
+  const openSecurityAccounts = async (type) => {
+    try {
+      let res;
+
+      if (type === "RISKY_IP") {
+        setSecurityModalTitle("🚨 위험 IP 대상 계정");
+        res = await adminApi.getRiskyIpAccounts();
+      } else if (type === "RAPID_FAIL") {
+        setSecurityModalTitle("⚠ Rapid Fail 의심 계정");
+        res = await adminApi.getRapidFailAccounts();
+      } else if (type === "LOCKED") {
+        setSecurityModalTitle("🔒 잠금된 계정");
+        res = await adminApi.getLockedUsers();
+      }
+
+      setSecurityAccounts(res?.data || []);
+      setSecurityModalOpen(true);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  // ✅ (추가) 모달 테이블 컬럼
+  const securityColumns = [
+    { title: "이메일", dataIndex: "EMAIL", key: "EMAIL" },
+    { title: "IP", dataIndex: "IP_ADDRESS", key: "IP_ADDRESS", render: (v) => v || "-" },
+    { title: "실패횟수", dataIndex: "FAIL_COUNT", key: "FAIL_COUNT", render: (v) => v ?? "-" },
+    { title: "잠금해제", dataIndex: "LOCK_UNTIL", key: "LOCK_UNTIL", render: (v) => v || "-" },
+  ];
 
   // ======================================================
   // Summary 카드 구성
@@ -200,11 +238,18 @@ export default function Dashboard() {
       {/* 🔐 2. 보안 통계(Security Overview) */}
       {/* --------------------------------------- */}
       <div style={{ marginTop: 40 }}>
-        <h3 style={{ fontWeight: 700, marginBottom: 16 }}>🔐 보안 통계 (Security Overview)</h3>
+        <h3 style={{ fontWeight: 700, marginBottom: 16 }}>
+          🔐 보안 통계 (Security Overview)
+        </h3>
 
         <Card style={{ borderRadius: 10 }}>
           <Row gutter={16}>
-            <Col xs={24} md={8}>
+            <Col
+              xs={24}
+              md={8}
+              style={{ cursor: "pointer" }}                         // ✅ 추가
+              onClick={() => openSecurityAccounts("RISKY_IP")}       // ✅ 추가
+            >
               <div style={{ padding: 12 }}>
                 <h4 style={{ marginBottom: 4 }}>🚨 위험 IP 탐지</h4>
                 <div style={{ fontSize: 28, fontWeight: "bold", color: "#dc2626" }}>
@@ -214,7 +259,12 @@ export default function Dashboard() {
               </div>
             </Col>
 
-            <Col xs={24} md={8}>
+            <Col
+              xs={24}
+              md={8}
+              style={{ cursor: "pointer" }}                         // ✅ 추가
+              onClick={() => openSecurityAccounts("RAPID_FAIL")}     // ✅ 추가
+            >
               <div style={{ padding: 12 }}>
                 <h4 style={{ marginBottom: 4 }}>⚠ Rapid Fail 탐지</h4>
                 <div style={{ fontSize: 28, fontWeight: "bold", color: "#f59e0b" }}>
@@ -224,7 +274,12 @@ export default function Dashboard() {
               </div>
             </Col>
 
-            <Col xs={24} md={8}>
+            <Col
+              xs={24}
+              md={8}
+              style={{ cursor: "pointer" }}                         // ✅ 추가
+              onClick={() => openSecurityAccounts("LOCKED")}         // ✅ 추가
+            >
               <div style={{ padding: 12 }}>
                 <h4 style={{ marginBottom: 4 }}>🔒 잠금된 계정</h4>
                 <div style={{ fontSize: 28, fontWeight: "bold", color: "#2563eb" }}>
@@ -235,7 +290,7 @@ export default function Dashboard() {
             </Col>
           </Row>
 
-          {/* 상세 보기 */}
+          {/* 상세 보기 (기존 유지) */}
           <div style={{ marginTop: 20, textAlign: "right" }}>
             <a
               href="/admin/logs/login"
@@ -253,7 +308,7 @@ export default function Dashboard() {
       </div>
 
       {/* --------------------------------------- */}
-      {/* 3. 가입자 / 로그인 비율 */}
+      {/* 3. 가입자 / 로그인 비율 (기존 유지) */}
       {/* --------------------------------------- */}
       <Row gutter={16} style={{ marginTop: 30 }}>
         <Col xs={24} lg={12}>
@@ -270,7 +325,7 @@ export default function Dashboard() {
       </Row>
 
       {/* --------------------------------------- */}
-      {/* 4. 뉴스 TOP 5 + 관리자 로그 */}
+      {/* 4. 뉴스 TOP 5 + 관리자 로그 (기존 유지) */}
       {/* --------------------------------------- */}
       <Row gutter={16} style={{ marginTop: 30 }}>
         <Col xs={24} lg={12}>
@@ -288,9 +343,7 @@ export default function Dashboard() {
                   <List.Item.Meta
                     title={
                       <Space>
-                        <Tag color="blue">
-                          {actionLabel(log.action || log.ACTION)}
-                        </Tag>
+                        <Tag color="blue">{actionLabel(log.action || log.ACTION)}</Tag>
                         <span>{log.adminEmail || log.ADMIN_EMAIL}</span>
                       </Space>
                     }
@@ -298,7 +351,9 @@ export default function Dashboard() {
                       <>
                         <div>시간: {log.createdAt || log.CREATED_AT}</div>
                         <div>대상: {log.targetEmail || log.TARGET_EMAIL}</div>
-                        <div style={{ whiteSpace: "pre-line" }}>{log.detail}</div>
+                        <div style={{ whiteSpace: "pre-line" }}>
+                          {log.detail || log.DETAIL}
+                        </div>
                       </>
                     }
                   />
@@ -308,6 +363,22 @@ export default function Dashboard() {
           </Card>
         </Col>
       </Row>
+
+      {/* ✅ (추가) 보안 계정 조회 모달 */}
+      <Modal
+        open={securityModalOpen}
+        title={securityModalTitle}
+        footer={null}
+        width={900}
+        onCancel={() => setSecurityModalOpen(false)}
+      >
+        <Table
+          rowKey={(r) => `${r.EMAIL}-${r.IP_ADDRESS || "NONE"}`}
+          columns={securityColumns}
+          dataSource={securityAccounts}
+          pagination={{ pageSize: 6 }}
+        />
+      </Modal>
     </div>
   );
 }

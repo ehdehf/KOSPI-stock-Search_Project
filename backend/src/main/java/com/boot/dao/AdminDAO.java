@@ -70,6 +70,10 @@ public interface AdminDAO {
     int countRapidFailAttempts();
     int countRiskyIp();
     
+    List<Map<String, Object>> listLockedUsers();
+    List<Map<String, Object>> listRapidFailAccounts();
+    List<Map<String, Object>> listRiskyIpAccounts();
+    
     void insertAdminLog(@Param("adminEmail") String adminEmail,
 			            @Param("targetEmail") String targetEmail,
 			            @Param("action") String action,

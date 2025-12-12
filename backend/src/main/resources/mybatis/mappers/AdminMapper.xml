@@ -247,11 +247,11 @@
 	<select id="countRapidFailAttempts" resultType="int">
 	    SELECT COUNT(*)
 	    FROM (
-	        SELECT EMAIL
+	        SELECT IP_ADDRESS
 	        FROM LOGIN_LOG
 	        WHERE STATUS = 'FAIL'
-	          AND CREATED_AT >= SYSDATE - (10/1440)  -- 최근 10분
-	        GROUP BY EMAIL
+	          AND CREATED_AT >= SYSDATE - (10/1440)
+	        GROUP BY IP_ADDRESS
 	        <![CDATA[
 	        HAVING COUNT(*) >= 3
 	        ]]>
@@ -264,10 +264,70 @@
 	        SELECT IP_ADDRESS
 	        FROM LOGIN_LOG
 	        WHERE STATUS = 'FAIL'
-	        GROUP BY IP_ADDRESS
 	        <![CDATA[
+	          AND CREATED_AT >= SYSDATE - 1
+	        GROUP BY IP_ADDRESS
 	        HAVING COUNT(*) >= 5
+	           OR COUNT(DISTINCT EMAIL) >= 3
 	        ]]>
 	    )
+	</select>
+	
+	<!-- 잠금 계정 리스트-->
+	<select id="listLockedUsers" resultType="map">
+	    SELECT
+	        EMAIL,
+	        LOCK_UNTIL,
+	        LOGIN_FAIL_COUNT
+	    FROM USER_INFO
+	    WHERE LOCK_UNTIL IS NOT NULL
+	    <![CDATA[
+	      AND LOCK_UNTIL > SYSDATE
+	    ]]>
+	    ORDER BY LOCK_UNTIL DESC
+	</select>
+	
+	<!-- Rapid Fail 대상 계정 리스트-->
+	<select id="listRapidFailAccounts" resultType="map">
+	    SELECT DISTINCT
+	        L.EMAIL,
+	        L.IP_ADDRESS,
+	        COUNT(*) OVER (PARTITION BY L.IP_ADDRESS) AS FAIL_COUNT
+	    FROM LOGIN_LOG L
+	    WHERE L.STATUS = 'FAIL'
+	    <![CDATA[
+	      AND L.CREATED_AT >= SYSDATE - (10/1440)
+	      AND L.IP_ADDRESS IN (
+	          SELECT IP_ADDRESS
+	          FROM LOGIN_LOG
+	          WHERE STATUS = 'FAIL'
+	            AND CREATED_AT >= SYSDATE - (10/1440)
+	          GROUP BY IP_ADDRESS
+	          HAVING COUNT(*) >= 3
+	    ]]>
+	      )
+	    ORDER BY FAIL_COUNT DESC
+	</select>
+	<!-- 위험 IP 대상 계정 리스트-->
+	<select id="listRiskyIpAccounts" resultType="map">
+	    SELECT DISTINCT
+	        L.EMAIL,
+	        L.IP_ADDRESS,
+	        COUNT(DISTINCT L.EMAIL) OVER (PARTITION BY L.IP_ADDRESS) AS TARGET_ACCOUNT_COUNT
+	    FROM LOGIN_LOG L
+	    WHERE L.STATUS = 'FAIL'
+	      AND L.CREATED_AT >= SYSDATE - 1
+	      AND L.IP_ADDRESS IN (
+	          SELECT IP_ADDRESS
+	          FROM LOGIN_LOG
+	          WHERE STATUS = 'FAIL'
+	          <![CDATA[
+	            AND CREATED_AT >= SYSDATE - 1
+	          GROUP BY IP_ADDRESS
+	          HAVING COUNT(*) >= 5
+	             OR COUNT(DISTINCT EMAIL) >= 3
+	         ]]>
+	      )
+	    ORDER BY TARGET_ACCOUNT_COUNT DESC
 	</select>
 	</mapper>

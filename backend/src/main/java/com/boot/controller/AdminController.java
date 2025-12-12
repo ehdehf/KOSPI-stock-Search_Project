@@ -88,4 +88,18 @@ public class AdminController {
     ) {
         return adminService.getDashboard(days, newsLimit);
     }
+    @GetMapping("/security/locked-users")
+    public ResponseEntity<?> lockedUsers() {
+        return ResponseEntity.ok(adminService.getLockedUsers());
+    }
+
+    @GetMapping("/security/rapid-fail")
+    public ResponseEntity<?> rapidFailAccounts() {
+        return ResponseEntity.ok(adminService.getRapidFailAccounts());
+    }
+
+    @GetMapping("/security/risky-ip")
+    public ResponseEntity<?> riskyIpAccounts() {
+        return ResponseEntity.ok(adminService.getRiskyIpAccounts());
+    }
 }

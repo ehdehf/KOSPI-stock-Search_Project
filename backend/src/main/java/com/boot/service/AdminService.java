@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -261,4 +262,17 @@ public class AdminService {
         
         return ResponseEntity.ok(dto);
     }
+    	// 보안 카드 리스트용
+	    public List<Map<String, Object>> getLockedUsers() {
+	        return adminDAO.listLockedUsers();
+	    }
+	
+	    public List<Map<String, Object>> getRapidFailAccounts() {
+	        return adminDAO.listRapidFailAccounts();
+	    }
+	
+	    public List<Map<String, Object>> getRiskyIpAccounts() {
+	        return adminDAO.listRiskyIpAccounts();
+	    }
+
 }

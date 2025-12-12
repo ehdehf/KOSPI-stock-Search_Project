@@ -37,6 +37,10 @@ const adminApi = {
   getLoginLog: () => axiosInstance.get("/admin/logs/login"),
 
   getAdminLog: () => axiosInstance.get("/admin/logs/admin"),
+
+  getLockedUsers: () => axiosInstance.get("/admin/security/locked-users"),
+  getRapidFailAccounts: () => axiosInstance.get("/admin/security/rapid-fail"),
+  getRiskyIpAccounts: () => axiosInstance.get("/admin/security/risky-ip"),
 };
 
 export default adminApi;
