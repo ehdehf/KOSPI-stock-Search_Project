@@ -6,7 +6,7 @@
 <br>
 
 <img src="https://img.shields.io/badge/Java-17-007396?logo=java">
-<img src="https://img.shields.io/badge/SpringBoot-3.x-6DB33F?logo=springboot">
+<img src="https://img.shields.io/badge/SpringBoot-2.7-6DB33F?logo=springboot">
 <img src="https://img.shields.io/badge/React-18-61DAFB?logo=react">
 <img src="https://img.shields.io/badge/Oracle-F80000?logo=oracle">
 <img src="https://img.shields.io/badge/MyBatis-000000">
