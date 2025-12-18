@@ -166,14 +166,14 @@
 
 ## 🧭 메뉴 구조도 (PDF)
 
-📄 메뉴 구조도 다운로드
+📄 메뉴 구조도 다운로드  
 👉 [menu structure.pdf](https://github.com/user-attachments/files/24228651/menu.structure.pdf)
 
 ---
 
 ## 🖥 화면 설계서 (PDF)
 
-📄 화면 설계서 보기 
+📄 화면 설계서 보기  
 👉 [ui-design.pdf](https://github.com/user-attachments/files/24228667/ui-design.pdf)
 
 ---
@@ -183,7 +183,7 @@
 📄 ERD  
 <details> <summary><strong>ERD 다이어그램</strong></summary>
 
-<img width="568" height="843" alt="image" src="https://github.com/user-attachments/assets/243c194e-d152-4b6c-bc4a-8d18c0534b33" />
+<img width="568" height="843" alt="image" src="https://github.com/user-attachments/assets/6d96c569-3365-4a94-93a0-21840de464fb" />
 
 </details>
 
