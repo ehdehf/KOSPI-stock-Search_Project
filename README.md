@@ -59,15 +59,16 @@
 
 | 분야 | 기술 |
 |------|------|
-| **Frontend** | <img src="https://img.shields.io/badge/react-61DAFB?style=flat-square&logi=html5&logoColor=white"> <img src="https://img.shields.io/badge/javascript-F7DF1E?style=flat-square&logi=html5&logoColor=white"> |
-| **Backend** | <img src="https://img.shields.io/badge/springboot-6DB33F?style=flat-square&logi=html5&logoColor=white"> <img src="https://img.shields.io/badge/Java-F7DF1E?style=flat-square&logi=html5&logoColor=white"> <img src="https://img.shields.io/badge/Lombok-4285F4?style=flat-square&logi=html5&logoColor=white"> <img src="https://img.shields.io/badge/MyBatis-006600?style=flat-square&logi=html5&logoColor=white"> |
-| **Database** | <img src="https://img.shields.io/badge/Oracle Database-09476B?style=flat-square&logi=html5&logoColor=white"> |
-| **Security** | <img src="https://img.shields.io/badge/JWT (Access / Refresh Token)-001E59?style=flat-square&logi=html5&logoColor=white"> <img src="https://img.shields.io/badge/springsecurity-6DB33F?style=flat-square&logi=html5&logoColor=white"> |
-| **Data / Crawling** | <img src="https://img.shields.io/badge/python-3776AB?style=flat-square&logi=html5&logoColor=white"> <img src="https://img.shields.io/badge/Requests-4445E7?style=flat-square&logi=html5&logoColor=white"> <img src="https://img.shields.io/badge/BeautifulSoup-556DB3?style=flat-square&logi=html5&logoColor=white"> |
-| **Cache / Scheduler** | <img src="https://img.shields.io/badge/redis-FF4438?style=flat-square&logi=html5&logoColor=white"> <img src="https://img.shields.io/badge/Spring Scheduler-6DB33F?style=flat-square&logi=html5&logoColor=white"> |
-| **Infra / Server** | <img src="https://img.shields.io/badge/AWS EC2 (Ubuntu)-F68F1E?style=flat-square&logi=html5&logoColor=white"> <img src="https://img.shields.io/badge/Apache Tomcat-F8DC75?style=flat-square&logi=html5&logoColor=white"> |
-| **Build Tool** | <img src="https://img.shields.io/badge/Gradle-02303A?style=flat-square&logi=html5&logoColor=white"> |
-| **Tools** | <img src="https://img.shields.io/badge/VS Code-3E8DCC?style=flat-square&logi=html5&logoColor=white"> <img src="https://img.shields.io/badge/STS-6DB33F?style=flat-square&logi=html5&logoColor=white"> <img src="https://img.shields.io/badge/Postman-FF6C37?style=flat-square&logi=html5&logoColor=white"> <img src="https://img.shields.io/badge/GitHub-181717?style=flat-square&logi=html5&logoColor=white"> <img src="https://img.shields.io/badge/SourceTree-0052CC?style=flat-square&logi=html5&logoColor=white"> |
+| **Frontend** | <img src="https://img.shields.io/badge/React-61DAFB?style=flat-square&logo=react&logoColor=black"> <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=flat-square&logo=javascript&logoColor=black"> |
+| **Backend** | <img src="https://img.shields.io/badge/Spring%20Boot-6DB33F?style=flat-square&logo=springboot&logoColor=white"> <img src="https://img.shields.io/badge/Java-007396?style=flat-square&logo=java&logoColor=white"> <img src="https://img.shields.io/badge/Lombok-ED1C24?style=flat-square"> <img src="https://img.shields.io/badge/MyBatis-000000?style=flat-square"> |
+| **Database** | <img src="https://img.shields.io/badge/Oracle%20Database-F80000?style=flat-square&logo=oracle&logoColor=white"> |
+| **Security** | <img src="https://img.shields.io/badge/JWT%20(Access%20%2F%20Refresh%20Token)-000000?style=flat-square"> <img src="https://img.shields.io/badge/Spring%20Security-6DB33F?style=flat-square&logo=springsecurity&logoColor=white"> |
+| **Data / Crawling** | <img src="https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white"> <img src="https://img.shields.io/badge/Requests-000000?style=flat-square"> <img src="https://img.shields.io/badge/BeautifulSoup-4B8BBE?style=flat-square"> |
+| **Cache / Scheduler** | <img src="https://img.shields.io/badge/Redis-DC382D?style=flat-square&logo=redis&logoColor=white"> <img src="https://img.shields.io/badge/Spring%20Scheduler-6DB33F?style=flat-square&logo=spring&logoColor=white"> |
+| **Infra / Server** | <img src="https://img.shields.io/badge/AWS%20EC2%20(Ubuntu)-FF9900?style=flat-square&logo=amazonaws&logoColor=white"> <img src="https://img.shields.io/badge/Apache%20Tomcat-F8DC75?style=flat-square&logo=apachetomcat&logoColor=black"> |
+| **Build Tool** | <img src="https://img.shields.io/badge/Gradle-02303A?style=flat-square&logo=gradle&logoColor=white"> |
+| **Tools** | <img src="https://img.shields.io/badge/VS%20Code-007ACC?style=flat-square&logo=visualstudiocode&logoColor=white"> <img src="https://img.shields.io/badge/STS-6DB33F?style=flat-square&logo=spring&logoColor=white"> <img src="https://img.shields.io/badge/Postman-FF6C37?style=flat-square&logo=postman&logoColor=white"> <img src="https://img.shields.io/badge/GitHub-181717?style=flat-square&logo=github&logoColor=white"> <img src="https://img.shields.io/badge/SourceTree-0052CC?style=flat-square&logo=sourcetree&logoColor=white"> |
+
 
 ---
 
