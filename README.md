@@ -198,9 +198,10 @@
 <details> <summary><strong>회원가입</strong></summary>
 
 
+https://github.com/user-attachments/assets/684a2c0a-a9d8-4a2d-844f-fd342654ef77
+
 
 https://github.com/user-attachments/assets/c0a16a21-42e8-4acb-aeda-10ff1b3ef3ec
-
 
 
 📌 설명
@@ -214,6 +215,9 @@ https://github.com/user-attachments/assets/c0a16a21-42e8-4acb-aeda-10ff1b3ef3ec
 로그인 가능 여부를 판단하도록 구성했습니다.
 
 </details> <details> <summary><strong>JWT 기반 인증 구조 설계 및 구현</strong></summary>
+
+<img width="1909" height="913" alt="스크린샷 2025-12-18 170055" src="https://github.com/user-attachments/assets/fd782f1d-35ee-4c6e-9ad8-326daac11eeb" />
+
 
 📌 설명
 
@@ -229,6 +233,10 @@ Refresh Token은 DB에 저장하여 재발급 및 강제 만료가 가능하도�
 서버 상태에 의존하지 않는 Stateless 인증 흐름을 구성했습니다.
 
 </details> <details> <summary><strong>소셜 로그인 및 계정 연동</strong></summary>
+
+
+https://github.com/user-attachments/assets/ed9f6374-2057-4724-98cf-0e9992951766
+
 
 📌 설명
 
@@ -261,6 +269,8 @@ QR 인증 토큰이 자동으로 만료되도록 처리했습니다.
 </details> <details> <summary><strong>계정 상태 관리 및 보안 통제</strong></summary>
 
 
+https://github.com/user-attachments/assets/3d49a768-9b44-408d-bc83-97debf2723a7
+
 
 📌 설명
 
@@ -277,6 +287,10 @@ QR 인증 토큰이 자동으로 만료되도록 처리했습니다.
 🛠 관리자 기능
 <details> <summary><strong>회원 관리</strong></summary>
 
+
+https://github.com/user-attachments/assets/6b74b333-4d16-4729-9e27-0464fc89176e
+
+
 📌 설명
 
 관리자 권한으로 사용자 계정 상태와 권한을 관리할 수 있도록
@@ -288,9 +302,7 @@ QR 인증 토큰이 자동으로 만료되도록 처리했습니다.
 </details> <details> <summary><strong>토큰 관리</strong></summary>
 
 
-
 https://github.com/user-attachments/assets/6cfe6178-25e6-4608-bd28-93e23ae7e9fe
-
 
 
 📌 설명
@@ -302,6 +314,10 @@ Refresh Token을 강제 만료할 수 있도록 구현했습니다.
 즉각적인 인증 차단이 가능하도록 구성했습니다.
 
 </details> <details> <summary><strong>로그 관리 및 보안 이벤트 관리</strong></summary>
+
+
+https://github.com/user-attachments/assets/5b1634fa-cac3-4f8b-8cbb-49ceed29105a
+
 
 📌 설명
 
@@ -318,6 +334,10 @@ Refresh Token을 강제 만료할 수 있도록 구현했습니다.
 확인할 수 있도록 구성했습니다.
 
 </details> <details> <summary><strong>관리자 작업 로그 (Admin Log)</strong></summary>
+
+
+https://github.com/user-attachments/assets/1cc578bb-f4b8-42b3-9ee5-80405dc552ce
+
 
 📌 설명
 관리자에 의해 수행된 주요 관리 작업에 대해
