@@ -114,7 +114,6 @@
 - 🏷 **키워드 기반 뉴스 요약 및 트렌드 분석**
 - 📈 **시장 및 종목 차트 시각화**
 
----
 
 ### 📰 데이터 수집 및 분석 기능
 - 주식 관련 뉴스 자동 수집(크롤링)
@@ -122,7 +121,6 @@
 - 뉴스–종목 자동 매칭
 - 배치/스케줄 기반 데이터 수집 구조
 
----
 
 ### 🧠 분석 및 인사이트 제공
 - 뉴스 본문 기반 감성 분석 (긍정 / 보통 / 부정)
@@ -130,14 +128,12 @@
 - 시장 전체 감성 흐름 요약
 - 키워드 빈도 기반 트렌드 분석
 
----
 
 ### 🔍 검색 엔진
 - 종목명 / 종목코드 검색
 - 뉴스 제목·키워드 검색
 - 종목·뉴스 통합 검색 결과 제공
 
----
 
 ### 🔐 회원 / 인증 기능
 - 회원가입 / 로그인 / 로그아웃
@@ -146,7 +142,6 @@
 - 비밀번호 찾기 및 재설정(이메일 인증)
 - 로그인 실패 횟수 제한 및 계정 잠금 처리
 
----
 
 ### 🛠 관리자 기능
 - **관리자 대시보드**
@@ -160,7 +155,6 @@
   - 로그인 로그
   - 관리자 작업 로그(Audit Log)
 
----
 
 ### 🔍 로그 & 보안
 - 로그인 성공 / 실패 / 잠금 로그 기록
@@ -170,27 +164,31 @@
 
 ---
 
-## 🗂 DB 설계
+## 🧭 메뉴 구조도 (PDF)
 
-- **USER_INFO** : 회원 정보 / 권한 / 계정 상태
-- **STOCK_INFO** : 종목 기본 정보
-- **STOCK_NEWS** : 뉴스 원문 + 감성 분석 결과
-- **LOGIN_LOG** : 로그인 이력
-- **ADMIN_LOG** : 관리자 작업 로그
+📄 메뉴 구조도 다운로드
+👉 [menu structure.pdf](https://github.com/user-attachments/files/24228651/menu.structure.pdf)
 
 ---
 
-## 🧭 메뉴 구조도
+## 🖥 화면 설계서 (PDF)
 
-📄 관리자 / 사용자 메뉴 구조  
-👉 *(첨부 예정)*
+📄 화면 설계서 보기 
+👉 [ui-design.pdf](https://github.com/user-attachments/files/24228667/ui-design.pdf)
 
 ---
 
-## 🖥 화면 설계서
+## 🗂 ERD 및 테이블 명세서
 
-📄 화면 설계서  
-👉 *(첨부 예정)*
+📄 ERD  
+<details> <summary><strong>ERD 다이어그램</strong></summary>
+
+<img width="568" height="843" alt="image" src="https://github.com/user-attachments/assets/243c194e-d152-4b6c-bc4a-8d18c0534b33" />
+
+</details>
+
+📄 테이블 명세서  
+👉 [table-definition.xls](https://github.com/user-attachments/files/24228696/table-definition.xls)
 
 ---
 
