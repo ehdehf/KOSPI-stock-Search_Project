@@ -218,7 +218,7 @@
 
 ---
 
-## 🔍 담당 기능능
+## 🔍 담당 기능
 
 🔐 인증 / 보안
 <details> <summary><strong>회원가입</strong></summary>
