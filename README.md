@@ -284,12 +284,9 @@ Python 기반 크롤러를 이용해
 시장 분위기와 종목 이슈를 직관적으로 파악할 수 있도록 설계했습니다.
 
 </details>
-
-
 🔑 키워드 트렌드 분석
 <details>
 <summary><strong>키워드 트렌드 분석</strong></summary>
-
 <div align="center">
   <img src="깃사진/1.png" width="45%"/>
   <img src="깃사진/2.png" width="45%"/>
