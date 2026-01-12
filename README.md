@@ -260,6 +260,7 @@ Python 기반 크롤러를 이용해
 분석 결과는 DB에 저장되어
 대시보드 및 통계 화면에서 활용됩니다.
 
+</details>
 📊 감성 대시보드
 <details>
 <summary><strong>감성 대시보드 및 패널 구성</strong></summary>
